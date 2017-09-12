@@ -21,8 +21,8 @@ __global__ void cube(float * d_out, float * d_in) {
 __global__ void special(float * d_out, float * d_in) {
     const unsigned int lid = threadIdx.x;
     const unsigned int gid = blockIdx.x*blockDim.x + lid;
-    float f = d_in[gid];
-    d_out[gid] = f * f * f;
+    float x = d_in[gid];
+    d_out[gid] = powf(x / (x - 2.3), 3);
 }
 
 int main(int argc, char **argv) {
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     cudaMemcpy(d_in, h_in, ARRAY_BYTES, cudaMemcpyHostToDevice);
 
     // Launch the kernel
-    square<<<ARRAY_SIZE/num_threads, num_threads>>>(d_out, d_in);
+    special<<<ARRAY_SIZE/num_threads, num_threads>>>(d_out, d_in);
 
     // copy back the result
     cudaMemcpy(h_out, d_out, ARRAY_BYTES, cudaMemcpyDeviceToHost);
