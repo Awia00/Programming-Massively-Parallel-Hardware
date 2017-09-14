@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <sys/time.h>
+#include <time.h>
 #include <cuda_runtime.h>
 
 __global__ void square(float * d_out, float * d_in) {
@@ -25,7 +27,19 @@ __global__ void special(float * d_out, float * d_in) {
     d_out[gid] = powf(x / (x - 2.3), 3);
 }
 
+
+int timeval_subtract( struct timeval* result, struct timeval* t2, struct timeval* t1) {
+    unsigned int resolution=1000000;
+    long int diff = (t2->tv_usec + resolution * t2->tv_sec) - (t1->tv_usec + resolution * t1->tv_sec);
+    result->tv_sec = diff / resolution;
+    result->tv_usec = diff % resolution;
+    return (diff<0);
+}
+
 int main(int argc, char **argv) {
+    unsigned long int elapsed;
+    struct timeval t_start, t_end, t_diff;
+    
     const int num_threads = 1024;
 	const int ARRAY_SIZE = 8192;
 	const int ARRAY_BYTES = ARRAY_SIZE * sizeof(float);
@@ -49,9 +63,17 @@ int main(int argc, char **argv) {
     // copy CPU memory to GPU memory
     cudaMemcpy(d_in, h_in, ARRAY_BYTES, cudaMemcpyHostToDevice);
 
+   
+    gettimeofday(&t_start, NULL); 
+
     // Launch the kernel
     special<<<ARRAY_SIZE/num_threads, num_threads>>>(d_out, d_in);
+    cudaThreadSynchronize();
 
+    gettimeofday(&t_end, NULL);  
+    timeval_subtract(&t_diff, &t_end, &t_start);
+    elapsed = t_diff.tv_sec*1e6+t_diff.tv_usec;
+    
     // copy back the result
     cudaMemcpy(h_out, d_out, ARRAY_BYTES, cudaMemcpyDeviceToHost);
     
@@ -60,6 +82,7 @@ int main(int argc, char **argv) {
         printf("%f", h_out[i]);
         printf((i % 4 != 3) ? "\t" : "\n");
     }
+    printf("Took %d microseconds (%.2fms)\n", elapsed, elapsed/1000.0);
 
     // free cpu memory
     free(h_in);
