@@ -1,4 +1,4 @@
-# Exercise 1
+## Exercise 1
 
 	Theorems:
 	Theorem 1: 	(map f) . (map g) = map(f . g)
@@ -26,3 +26,4 @@
 					= (reduce op id) . (map(reduce op id)) . (map(map f)) . distrp  : by theorem 3
 					= (reduce op id) . (map((reduce op id) . (map f)) . distrp  	: by theorem 1
 	Proof done.
+

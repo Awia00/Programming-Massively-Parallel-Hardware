@@ -1,0 +1,1 @@
+cat Exercise* > qrj741_week1.md
