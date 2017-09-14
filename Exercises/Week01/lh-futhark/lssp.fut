@@ -35,10 +35,10 @@ let redOp (pind : int)
   let (lssx, lisx, lcsx, tlx, firstx, lastx) = x
   let (lssy, lisy, lcsy, tly, firsty, lasty) = y
 
-  let connect = pred(pind, lastx, firsty)
-  let newlss  = connect ? max(lssx, max(lssy, lcsx+lisy)) : max(lssx,lssy)
-  let newlis  = lisx == tlx ? tlx + lisy : lisx    -- if the lis of x is the entire x then we can add lis from y
-  let newlcs  = lcsy == tly ? tly + lcsx : lcsy    -- if the lcs of y is the entire y then we can add lcs from x
+  let connect = pred2(pind, lastx, firsty)
+  let newlss  = if connect then max(lssx, max(lssy, lcsx+lisy)) else max(lssx,lssy)
+  let newlis  = if (lisx == tlx && connect) then tlx + lisy else lisx    -- if the lis of x is the entire x then we can add lis from y
+  let newlcs  = if (lcsy == tly && connect) then tly + lcsx else lcsy    -- if the lcs of y is the entire y then we can add lcs from x
   let first   = if tlx == 0 then firsty else firstx
   let last    = if tly == 0 then lastx else lasty in
 
