@@ -68,4 +68,5 @@ Final version:
     mm      = length not_primes
 
 
-*TODO WRITE INTO primes-flat.fut*
+For the implementation, see "primes-flat.fut"
+
