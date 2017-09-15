@@ -1,34 +1,31 @@
 # Exercises Week 1
 *Anders Wind Steffensen* (qrj742@alumni.ku.dk)
 18-09-2017
+
 ## Exercise 1
 
-	Theorems:
-	Theorem 1: 	(map f) . (map g) = map(f . g)
-	Theorem 2: 	(map f) . (reduce (++) []) = (redude(++) []) . (map(map f))
-	Theorem 3: 	(reduce op id) . (reduce (++) []) = (reduce op id) . (map(reduce op id))
-	
-	Distrp
-	distr_p :: [a]->[[a]]
+Theorems:
+Theorem 1: 	(map f) . (map g) = map(f . g)
+Theorem 2: 	(map f) . (reduce (++) []) = (redude(++) []) . (map(map f))
+Theorem 3: 	(reduce op id) . (reduce (++) []) = (reduce op id) . (map(reduce op id))
 
-	Redomap
-	Redomap: 	redomap op f id = (reduce op id) . (map f)
-	Hint: 		(reduce (++) []) . distrp = id
+distr_p :: [a]->[[a]]
 
-	Rule 2: 
-	Rule 3: redomap op f id = (reduce op id) . (map(redomap op f id)) . distrp
+Redomap: redomap op f id = (reduce op id) . (map f)
+Hint: (reduce (++) []) . distrp = id
 
 
-	Proof: 
-	We want to prove that "redomap op f id = (reduce op id) . (map(redomap op f id)) . distrp"
+Proof: 
+We want to prove 
+	redomap op f id = (reduce op id) . (map(redomap op f id)) . distrp
 
-	redomap op f id = (reduce op id) . (map f)
-					= (reduce op id) . (map f) . id
-					= (reduce op id) . (map f) . (reduce (++) []) . distrp  		: by hint
-					= (reduce op id) . (reduce (++) []) . (map(map f)) . distrp  	: by theorem 2
-					= (reduce op id) . (map(reduce op id)) . (map(map f)) . distrp  : by theorem 3
-					= (reduce op id) . (map((reduce op id) . (map f)) . distrp  	: by theorem 1
-	Proof done.
+redomap op f id = (reduce op id) . (map f)
+				= (reduce op id) . (map f) . id
+				= (reduce op id) . (map f) . (reduce (++) []) . distrp  		: by hint
+				= (reduce op id) . (reduce (++) []) . (map(map f)) . distrp  	: by theorem 2
+				= (reduce op id) . (map(reduce op id)) . (map(map f)) . distrp  : by theorem 3
+				= (reduce op id) . (map((reduce op id) . (map f)) . distrp  	: by theorem 1
+Proof done.
 
 ## Exercise 2
 
