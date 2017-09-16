@@ -10,7 +10,6 @@ distr_p :: [a]->[[a]]
 Redomap: redomap op f id = (reduce op id) . (map f)
 Hint: (reduce (++) []) . distrp = id
 
-
 Proof: 
 We want to prove 
 	redomap op f id = (reduce op id) . (map(redomap op f id)) . distrp

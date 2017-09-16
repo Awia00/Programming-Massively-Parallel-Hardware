@@ -7,4 +7,4 @@ compile:
 run:
 	./a.out ;
 	cat data | ./lssp;
-	./primes-flat;
+	./primes-flat 1000;

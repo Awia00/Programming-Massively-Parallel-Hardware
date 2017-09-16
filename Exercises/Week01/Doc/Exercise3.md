@@ -33,7 +33,7 @@ Flattened.
     F( map(\mm1 -> (iota mm1) mm1s )
         inds = scanexc (+) 0 mmis
         size = reduce (+) 0 mmis
-        flag = scatter (replicate size 0) inds arr
+        flag = scatter (replicate size 0) inds mm1s
         tmp = replicate size 1
         iots = sgmScanExc (+) 0 flag tmp
 

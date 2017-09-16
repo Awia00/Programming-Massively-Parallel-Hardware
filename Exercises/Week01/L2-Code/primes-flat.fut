@@ -5,6 +5,14 @@
 
 import "/futlib/array"
 
+let segmented_scan_plus [n] (flags: [n]i32) (as: [n]i32): [n]i32 =
+	#2 (unzip (scan (\(x_flag,x) (y_flag,y) ->
+ 		if y_flag > 0
+			then (x_flag | y_flag, y)
+			else (x_flag | y_flag, x + y))
+		(0i32, 0)
+		(zip flags as)))
+
 -- ASSIGNMENT 1, Task 3: implement below the flat
 -- The current dummy implementation only recognizes
 -- [2,3,5,7] as prime numbers.
@@ -12,18 +20,17 @@ import "/futlib/array"
 let primesFlat (n : i32) : []i32 =
   if n <= 8 then [2,3,5,7]
   else let sq= i32( f64.sqrt (f64 n) )
-       let sq_primes    = [2,3,5,7] -- primesFlat sq
-       let sqrt_primes  = primesOpt (sqrt (fromIntegral n))
-       let ms      = map(\p -> n ‘div‘ p) sqrt_primes
+       let sqrt_primes    = primesFlat sq
+       let ms      = map(\p -> n / p) sqrt_primes
        let mm1s    = map(\m -> m - 1) ms
-       let inds    = scanexc (+) 0 mmis
-       let size    = reduce (+) 0 mmis
-       let flag    = scatter (replicate size 0) inds arr
+       let inds    = scan (+) 0 mm1s -- should be corrected to exc
+       let size    = reduce (+) 0 mm1s
+       let flag    = scatter (replicate size 0) inds mm1s
        let tmp     = replicate size 1
-       let iots    = sgmScanExc (+) 0 flag tmp
+       let iots    = scan (+) 0 tmp -- should be corrected to exc and check if tmp should be flag
        let twoms   = map(\i -> i +2) iots
        let vals    = scatter (replicate size 0) inds sqrt_primes
-       let rps     = sgmScanInc (+) flag vals
+       let rps     = segmented_scan_plus flag vals
        let not_primes   = map (*) twoms rps -- nested is not_primes since it is already flattened
        let mm      = length not_primes
        let zero_array   = replicate mm 0
