@@ -1,13 +1,15 @@
 ## Exercise 3
 
-Program:
+### Program
+
     sqrt_primes = primesOpt (sqrt (fromIntegral n))
     nested = map (\p -> 
         let m = (n 'div' p)
         in map (\j -> j*p) [2..m])
     not_primes = reduce (++) [] nested
 
-Normalized:
+### Normalized
+
     sqrt_primes = primesOpt (sqrt (fromIntegral n))
     nested = map (\p ->
         let m       = n ‘div‘ p in              -- distribute map   // 1
@@ -19,15 +21,16 @@ Normalized:
     ) sqrt_primes
 
 
-Flattened.
+### Flattened
+
     sqrt_primes = primesOpt (sqrt (fromIntegral n))
-    F( map (\p -> let m = (n 'div' p) in map (\j -> j*p) [2..m]) ) ==
-        1. let ms       =  map(\p -> n ‘div‘ p) sqrt_primes
+    F( map (\p -> let m = (n 'div' p) in map (\j -> j*p) [2..m]) ) =
+        1. let ms       = map(\p -> n ‘div‘ p) sqrt_primes
         2. let mm1s     = map(\m -> m - 1) ms
         3. let iots     = F( map(\mm1 -> (iota mm1) mm1s) )
         4. let twoms    = F( map(\iot -> map (+2) iot) iots )
         5. let rps      = F( map (\(mm1, p) -> replicate mm1 p) mm1s sqrt_primes )
-        6. let nested   = F(map(\(js,ps) -> map (*) js ps)) twoms rps -- assuming map goes over each element of the twoms and rps at the same time.
+        6. let nested   = F(map(\(js,ps) -> map (*) js ps)) twoms rps -- assuming automatic zipping of elements in twoms and rps.
 
     3: using rule 4
     F( map(\mm1 -> (iota mm1) mm1s )
@@ -49,23 +52,6 @@ Flattened.
     6: using rule 2
     F(map(\(js,ps) -> map (*) js ps)) twoms rps
         nested = map (*) twoms rps
-
-
-Final version:
-    
-    sqrt_primes = primesOpt (sqrt (fromIntegral n))
-    ms      = map(\p -> n ‘div‘ p) sqrt_primes
-    mm1s    = map(\m -> m - 1) ms
-    inds    = scanexc (+) 0 mmis
-    size    = reduce (+) 0 mmis
-    flag    = scatter (replicate size 0) inds arr
-    tmp     = replicate size 1
-    iots    = sgmScanExc (+) 0 flag tmp
-    twoms   = map(\i -> i +2) iots
-    vals    = scatter (replicate size 0) inds sqrt_primes
-    rps     = sgmScanInc (+) flag vals
-    not_primes  = map (*) twoms rps -- nested is not_primes since it is already flattened
-    mm      = length not_primes
 
 
 For the implementation, see "primes-flat.fut"

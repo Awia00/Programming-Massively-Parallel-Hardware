@@ -5,15 +5,7 @@
 
 import "/futlib/array"
 
-let segmented_scan_exc_plus [n] (flags: [n]i32) (as: [n]i32): [n]i32 =
-	#2 (unzip (scan (\(x_flag,x) (y_flag,y) ->
- 		if y_flag > 0
-			then (x_flag | y_flag, y)
-			else (x_flag | y_flag, x + y))
-		(0i32, 0)
-		(zip flags as)))
-
-let segmented_scan_inc_plus [n] (flags: [n]i32) (as: [n]i32): [n]i32 =
+let segmented_scan_plus [n] (flags: [n]i32) (as: [n]i32): [n]i32 =
 	#2 (unzip (scan (\(x_flag,x) (y_flag,y) ->
  		if y_flag > 0
 			then (x_flag | y_flag, y)
@@ -40,12 +32,12 @@ let primesFlat (n : i32) : []i32 =
        let size    = reduce (+) 0 mm1s
        let flag    = scatter (replicate size 0) inds mm1s
        let tmp     = replicate size 1
-	   let iots    = scan_inc_to_exc (segmented_scan_exc_plus flag tmp) 
+	   let iots    = scan_inc_to_exc (segmented_scan_plus flag tmp) 
 	   --
        let twoms   = map(\i -> i +2) iots
 	   --
 	   let vals    = scatter (replicate size 0) inds sqrt_primes
-	   let rps     = segmented_scan_inc_plus flag vals
+	   let rps     = segmented_scan_plus flag vals
 	   --
        let not_primes   = map (*) twoms rps 
        let mm      = length not_primes
