@@ -14,7 +14,6 @@ distr_p :: [a]->[[a]]
 Redomap: redomap op f id = (reduce op id) . (map f)
 Hint: (reduce (++) []) . distrp = id
 
-
 Proof: 
 We want to prove 
 	redomap op f id = (reduce op id) . (map(redomap op f id)) . distrp
@@ -51,14 +50,16 @@ We can see here that the running time of the opencl compiled version is faster t
 
 ## Exercise 3
 
-Program:
+### Program
+
     sqrt_primes = primesOpt (sqrt (fromIntegral n))
     nested = map (\p -> 
         let m = (n 'div' p)
         in map (\j -> j*p) [2..m])
     not_primes = reduce (++) [] nested
 
-Normalized:
+### Normalized
+
     sqrt_primes = primesOpt (sqrt (fromIntegral n))
     nested = map (\p ->
         let m       = n ‘div‘ p in              -- distribute map   // 1
@@ -70,21 +71,22 @@ Normalized:
     ) sqrt_primes
 
 
-Flattened.
+### Flattened
+
     sqrt_primes = primesOpt (sqrt (fromIntegral n))
-    F( map (\p -> let m = (n 'div' p) in map (\j -> j*p) [2..m]) ) ==
-        1. let ms       =  map(\p -> n ‘div‘ p) sqrt_primes
+    F( map (\p -> let m = (n 'div' p) in map (\j -> j*p) [2..m]) ) =
+        1. let ms       = map(\p -> n ‘div‘ p) sqrt_primes
         2. let mm1s     = map(\m -> m - 1) ms
         3. let iots     = F( map(\mm1 -> (iota mm1) mm1s) )
         4. let twoms    = F( map(\iot -> map (+2) iot) iots )
         5. let rps      = F( map (\(mm1, p) -> replicate mm1 p) mm1s sqrt_primes )
-        6. let nested   = F(map(\(js,ps) -> map (*) js ps)) twoms rps -- assuming map goes over each element of the twoms and rps at the same time.
+        6. let nested   = F(map(\(js,ps) -> map (*) js ps)) twoms rps -- assuming automatic zipping of elements in twoms and rps.
 
     3: using rule 4
     F( map(\mm1 -> (iota mm1) mm1s )
         inds = scanexc (+) 0 mmis
         size = reduce (+) 0 mmis
-        flag = scatter (replicate size 0) inds arr
+        flag = scatter (replicate size 0) inds mm1s
         tmp = replicate size 1
         iots = sgmScanExc (+) 0 flag tmp
 
@@ -102,24 +104,31 @@ Flattened.
         nested = map (*) twoms rps
 
 
-Final version:
-    
-    sqrt_primes = primesOpt (sqrt (fromIntegral n))
-    ms      = map(\p -> n ‘div‘ p) sqrt_primes
-    mm1s    = map(\m -> m - 1) ms
-    inds    = scanexc (+) 0 mmis
-    size    = reduce (+) 0 mmis
-    flag    = scatter (replicate size 0) inds arr
-    tmp     = replicate size 1
-    iots    = sgmScanExc (+) 0 flag tmp
-    twoms   = map(\i -> i +2) iots
-    vals    = scatter (replicate size 0) inds sqrt_primes
-    rps     = sgmScanInc (+) flag vals
-    not_primes  = map (*) twoms rps -- nested is not_primes since it is already flattened
-    mm      = length not_primes
-
-
 For the implementation, see "primes-flat.fut"
+
+
+### Discussion
+
+    primes-naive 	(CPU): 
+        $ echo 10000000 | ./primes-naive -t /dev/stderr > /dev/null
+        593387
+    primes-naive 	(GPU):
+        echo 10000000 | ./primes-naive -t /dev/stderr > /dev/null
+        38996
+    primes-opt 		(CPU):
+        $ echo 10000000 | ./primes-opt -t /dev/stderr > /dev/null
+        229836
+    primes-opt 		(GPU):
+         $ echo 10000000 | ./primes-opt -t /dev/stderr > /dev/null
+         **Does not finish within 1 min**
+    primes-flat		(CPU):
+        $ echo 10000000 | ./primes-flat -t /dev/stderr > /dev/null
+        329925
+    primes-flat		(GPU):
+        echo 10000000 | ./primes-flat -t /dev/stderr > /dev/null
+        98041
+
+I am generally seeing some weird results. First of all to compare the CPU versions; *Naive* is the slowest version which makes sense since the depth is "sqrt(n)" and not "lg lg n" like *opt* and *flat*. Naturally we also see an increase in runnning time for *flat* since the flattening requires more operations. The GPU results are difficult to explain. *Naive* is the fastest of the three with an order of magnitude better running time than its own CPU version. The *flat* GPU version is also an improvement over the CPU version but not to the same extend. In *opt* an "unsafe"-keyword had to be added around the last filter to make it compile with opencl. The program did not finish within a reasonable time limit so I omitted the results. I would have expected *flat* to be the fastest of the three given the lower depth and since the flattened form would allow for higher parallelism. 
 
 ## Exercise 4
 
@@ -130,4 +139,4 @@ I typically see such results:
     CPU Took 132 microseconds (0.13ms)
     GPU Took 46 microseconds (0.05ms)
 
-The GPU is a factor of ~3 faster than the CPU. Even though the CPU is running sequentially, the faster clock speed and cache control makes it relatively fast at computing the result. The GPU however while faster is not faster by a factor of the number of cores. The clock speed of each core is of course much lower but the explanation to the relatively low speedup is probably that the GPU spends too much time on retrieving/writing to the global memory that is the math/memory ratio is too low.
+The GPU is a factor of ~3 faster than the CPU. Even though the CPU is running sequentially, the faster clock speed and cache control makes it relatively fast at computing the result. The GPU however while faster, does not have a speedup by a factor of the number of cores. The clock speed of each core is of course much lower than the CPU's cores but the explanation is probably that the GPU spends too much time on retrieving/writing to global memory. This means that the math/memory ratio is too low.
