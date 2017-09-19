@@ -13,9 +13,9 @@ let segmented_scan_plus [n] (flags: [n]i32) (as: [n]i32): [n]i32 =
 		(0i32, 0)
 		(zip flags as)))
 
-let scan_inc_to_exc [n] (arr:[n]i32) : [n]i32 = 
-	let size = (length arr) - 1
-	in concat [0] arr[0:size]
+let scan_inc_to_exc [n] (arr:[n]i32) : [n]i32 =
+	--concat [0] arr[0:n-1]
+	map (\i -> if (i==0) then 0 else arr[i-1]) iota n
 
 -- ASSIGNMENT 1, Task 3: implement below the flat
 -- The current dummy implementation only recognizes
