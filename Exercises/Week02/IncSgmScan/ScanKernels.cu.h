@@ -41,6 +41,7 @@ class MyInt4 {
     }
 };
 
+#define MAX(a,b) ((a) > (b) ? a : b)
 /**
  * Task I.2 (MSSP), Weekly-2: implement the MSSP associative operator 
  * (fill in the blanks)
@@ -50,10 +51,10 @@ class MsspOp {
     typedef MyInt4 BaseType;
     static __device__ inline MyInt4 identity() { return MyInt4(0,0,0,0); }  
     static __device__ inline MyInt4 apply(volatile MyInt4& t1, volatile MyInt4& t2) { 
-        int mss = 0; // ... fill in the blanks ...
-        int mis = 0; // ... fill in the blanks ...
-        int mcs = 0; // ... fill in the blanks ...
-        int t   = 0; // ... fill in the blanks ...
+        int mss = MAX(t1.x, MAX(t2.x, t1.z + t2.y));
+        int mis = MAX(t1.y, t1.w + t2.y);
+        int mcs = MAX(t2.z, t1.z + t2.w);
+        int t   = t1.w + t2.w; 
         return MyInt4(mss, mis, mcs, t); 
     }
 };
@@ -270,7 +271,9 @@ template<class T>
 __global__ void 
 shiftRightByOne(T* d_in, T* d_out, T ne, unsigned int d_size) {
     const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
-    // ... fill in the blanks ...     
+    d_out[0] = ne
+    if(gid < d_size-1)
+        d_out[gid+1] = d_in[gid];
 }
 
 
@@ -287,8 +290,9 @@ template<class T>
 __global__ void 
 sgmShiftRightByOne(T* d_in, int*flags, T* d_out, T ne, unsigned int d_size) {
     const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
-    if(gid < d_size) {
-        // ... fill in the blanks ...
+    d_out[0] = ne
+    if(gid < d_size-1) {
+        d_out[gid+1] = flags[gid+1] != 0 ? ne : d_out[gid];
     }
 }
 
@@ -309,7 +313,8 @@ __global__ void
 msspTrivialMap(int* inp_d, MyInt4* inp_lift, int inp_size) {
     const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
     if(gid < inp_size) {
-        // ... fill in the blanks ...
+        int x = inp_d[gid];
+        inp_lift[gid] = MyInt4(MAX(x, 0), MAX(x, 0), MAX(x, 0), x);
     }
 }
 

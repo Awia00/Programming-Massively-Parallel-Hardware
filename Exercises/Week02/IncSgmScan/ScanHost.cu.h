@@ -80,6 +80,22 @@ void scanInc(    unsigned int  block_size,
     cudaFree(d_rec_out);
 }
 
+template<class OP, class T>
+void scanExc(    unsigned int  block_size,
+                 unsigned long d_size, 
+                 T*            d_in,  // device
+                 T*            d_out  // device
+) {
+    scanInc(block_size, d_size, d_in, d_out);
+
+    unsigned int num_blocks;
+    num_blocks = ( (d_size % block_size) == 0) ?
+                    d_size / block_size     :
+                    d_size / block_size + 1 ;
+    
+    shiftRightByOne<OP,T><<< num_blocks, block_size >>>(d_in, d_out, T.identity(), d_size);
+}
+
 
 /**
  * block_size is the size of the cuda block (must be a multiple 
@@ -159,5 +175,21 @@ void sgmScanInc( const unsigned int  block_size,
     cudaFree(d_rec_out);
     cudaFree(f_rec_in );
     cudaFree(f_inds   );
+}
+
+template<class OP, class T>
+void sgmScanExc( const unsigned int  block_size,
+                 const unsigned long d_size,
+                 T*            d_in,  //device
+                 int*          flags, //device
+                 T*            d_out  //device
+) {
+    unsigned int num_blocks;
+
+    num_blocks = ( (d_size % block_size) == 0) ?
+                    d_size / block_size     :
+                    d_size / block_size + 1 ;
+
+    sgmShiftRightByOne<OP,T><<< num_blocks, block_size >>>(d_in, flags, d_out, T.identity(), d_size);
 }
 #endif //SCAN_HOST
