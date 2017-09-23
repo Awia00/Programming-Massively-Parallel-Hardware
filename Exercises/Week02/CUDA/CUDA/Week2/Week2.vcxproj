@@ -152,7 +152,17 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CudaCompile Include="IncSgmScan\ScanMainGen.cu" />
     <CudaCompile Include="kernel.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="IncSgmScan\Makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="IncSgmScan\ScanHost.cu.h" />
+    <ClInclude Include="IncSgmScan\ScanKernels.cu.h" />
+    <ClInclude Include="IncSgmScan\ScanMainGen.h" />
+    <ClInclude Include="IncSgmScan\TimeOfDay.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

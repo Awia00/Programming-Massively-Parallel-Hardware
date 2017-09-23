@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="IncSgmScan\ScanMainGen.cu">
+      <Filter>IncSgmScan</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="IncSgmScan">
+      <UniqueIdentifier>{f860a365-925c-4698-b359-99f481650f15}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="IncSgmScan\Makefile">
+      <Filter>IncSgmScan</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="IncSgmScan\ScanHost.cu.h">
+      <Filter>IncSgmScan</Filter>
+    </ClInclude>
+    <ClInclude Include="IncSgmScan\ScanKernels.cu.h">
+      <Filter>IncSgmScan</Filter>
+    </ClInclude>
+    <ClInclude Include="IncSgmScan\ScanMainGen.h" />
+    <ClInclude Include="IncSgmScan\TimeOfDay.h">
+      <Filter>IncSgmScan</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

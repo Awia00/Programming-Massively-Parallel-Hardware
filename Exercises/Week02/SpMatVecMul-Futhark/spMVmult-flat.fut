@@ -76,8 +76,10 @@ let spMatVctMult [num_elms] [vct_len] [num_rows]
   let shp_sc   = scan (+) 0 shp
   let shp_inds = map (\ i -> if i > 0 then unsafe shp_sc[i-1] else 0) (iota num_rows)
   let flags    = scatter (replicate num_elms 0) shp_inds (replicate num_rows 1)
-  -- ... continue here ...
-  in  replicate num_rows 0.0f32
+  let row_lens = map(\i -> shp[i]) num_rows
+  let sums     = sgmSumF32(\(index,val) -> val*vct[i]) flags mat
+  let res      = filter(\(sum, flag) -> flag!=0) (zip sums flags)
+  in  res
 
 
 -- One may run with for example:

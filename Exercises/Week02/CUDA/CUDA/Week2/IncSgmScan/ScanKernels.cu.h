@@ -2,6 +2,7 @@
 #define SCAN_KERS
 
 #include <cuda_runtime.h>
+#include "device_launch_parameters.h"
 
 template<class T>
 class Add {
@@ -271,7 +272,7 @@ template<class T>
 __global__ void 
 shiftRightByOne(T* d_in, T* d_out, T ne, unsigned int d_size) {
     const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
-    d_out[0] = ne
+	d_out[0] = ne;
     if(gid < d_size-1)
         d_out[gid+1] = d_in[gid];
 }
@@ -290,7 +291,7 @@ template<class T>
 __global__ void 
 sgmShiftRightByOne(T* d_in, int*flags, T* d_out, T ne, unsigned int d_size) {
     const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
-    d_out[0] = ne
+	d_out[0] = ne;
     if(gid < d_size-1) {
         d_out[gid+1] = flags[gid+1] != 0 ? ne : d_out[gid];
     }

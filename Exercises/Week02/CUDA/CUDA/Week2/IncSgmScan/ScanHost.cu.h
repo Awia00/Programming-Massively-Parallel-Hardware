@@ -2,8 +2,8 @@
 #define SCAN_HOST
 
 #include "ScanKernels.cu.h"
+#include "TimeOfDay.h"
 
-#include <sys/time.h>
 #include <time.h> 
 
 int timeval_subtract(struct timeval *result, struct timeval *t2, struct timeval *t1)
@@ -86,14 +86,14 @@ void scanExc(    unsigned int  block_size,
                  T*            d_in,  // device
                  T*            d_out  // device
 ) {
-    scanInc(block_size, d_size, d_in, d_out);
+    scanInc<OP,T>(block_size, d_size, d_in, d_out);
 
     unsigned int num_blocks;
     num_blocks = ( (d_size % block_size) == 0) ?
                     d_size / block_size     :
                     d_size / block_size + 1 ;
     
-    shiftRightByOne<OP,T><<< num_blocks, block_size >>>(d_in, d_out, T.identity(), d_size);
+    shiftRightByOne<T><<< num_blocks, block_size >>>(d_in, d_out, identity(), d_size);
 }
 
 
@@ -184,12 +184,13 @@ void sgmScanExc( const unsigned int  block_size,
                  int*          flags, //device
                  T*            d_out  //device
 ) {
+	sgmScanInc<OP, T>(block_size, d_size, d_in, flags, d_out);
     unsigned int num_blocks;
 
     num_blocks = ( (d_size % block_size) == 0) ?
                     d_size / block_size     :
                     d_size / block_size + 1 ;
 
-    sgmShiftRightByOne<OP,T><<< num_blocks, block_size >>>(d_in, flags, d_out, T.identity(), d_size);
+    sgmShiftRightByOne<T><<< num_blocks, block_size >>>(d_in, flags, d_out, identity(), d_size);
 }
 #endif //SCAN_HOST
