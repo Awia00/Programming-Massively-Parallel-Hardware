@@ -86,14 +86,20 @@ void scanExc(    unsigned int  block_size,
                  T*            d_in,  // device
                  T*            d_out  // device
 ) {
-    scanInc<OP,T>(block_size, d_size, d_in, d_out);
+	T *d_inc;
+	cudaMalloc((void**)&d_inc, d_size * sizeof(T));
+
+    scanInc<OP,T>(block_size, d_size, d_in, d_inc);
+	cudaThreadSynchronize();
 
     unsigned int num_blocks;
     num_blocks = ( (d_size % block_size) == 0) ?
                     d_size / block_size     :
                     d_size / block_size + 1 ;
     
-    shiftRightByOne<T><<< num_blocks, block_size >>>(d_in, d_out, identity(), d_size);
+    shiftRightByOne<T><<< num_blocks, block_size >>>(d_inc, d_out, OP::identity(), d_size);
+	cudaThreadSynchronize();
+	cudaFree(d_inc);
 }
 
 
@@ -184,13 +190,19 @@ void sgmScanExc( const unsigned int  block_size,
                  int*          flags, //device
                  T*            d_out  //device
 ) {
-	sgmScanInc<OP, T>(block_size, d_size, d_in, flags, d_out);
+	T *d_inc;
+	cudaMalloc((void**)&d_inc, d_size * sizeof(T));
+
+	sgmScanInc<OP, T>(block_size, d_size, d_in, flags, d_inc);
+	cudaThreadSynchronize();
     unsigned int num_blocks;
 
     num_blocks = ( (d_size % block_size) == 0) ?
                     d_size / block_size     :
                     d_size / block_size + 1 ;
 
-    sgmShiftRightByOne<T><<< num_blocks, block_size >>>(d_in, flags, d_out, identity(), d_size);
+    sgmShiftRightByOne<T><<< num_blocks, block_size >>>(d_inc, flags, d_out, OP::identity(), d_size);
+	cudaThreadSynchronize();
+	cudaFree(d_inc);
 }
 #endif //SCAN_HOST

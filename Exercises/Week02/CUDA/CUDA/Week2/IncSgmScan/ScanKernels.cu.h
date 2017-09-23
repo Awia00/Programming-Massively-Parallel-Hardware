@@ -272,9 +272,11 @@ template<class T>
 __global__ void 
 shiftRightByOne(T* d_in, T* d_out, T ne, unsigned int d_size) {
     const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
-	d_out[0] = ne;
+
     if(gid < d_size-1)
         d_out[gid+1] = d_in[gid];
+	else 
+		d_out[0] = ne;
 }
 
 
@@ -291,10 +293,10 @@ template<class T>
 __global__ void 
 sgmShiftRightByOne(T* d_in, int*flags, T* d_out, T ne, unsigned int d_size) {
     const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
-	d_out[0] = ne;
-    if(gid < d_size-1) {
-        d_out[gid+1] = flags[gid+1] != 0 ? ne : d_out[gid];
-    }
+    if(gid < d_size-1) 
+        d_out[gid+1] = flags[gid+1] != 0 ? ne : d_in[gid];
+	else
+		d_out[0] = ne;
 }
 
 
@@ -315,7 +317,8 @@ msspTrivialMap(int* inp_d, MyInt4* inp_lift, int inp_size) {
     const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
     if(gid < inp_size) {
         int x = inp_d[gid];
-        inp_lift[gid] = MyInt4(MAX(x, 0), MAX(x, 0), MAX(x, 0), x);
+		int val = MAX(x, 0);
+        inp_lift[gid] = MyInt4(val, val, val, x);
     }
 }
 

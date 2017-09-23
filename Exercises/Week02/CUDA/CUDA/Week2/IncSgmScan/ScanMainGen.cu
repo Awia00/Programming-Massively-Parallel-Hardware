@@ -68,7 +68,7 @@ int scanIncTest(bool is_segmented) {
 
 			if (accum != h_out[i]) {
 				success = false;
-				//printf("Scan Inclusive Violation: %.1d should be %.1d\n", h_out[i], accum);
+				printf("Scan Inclusive Violation: %.1d should be %.1d\n", h_out[i], accum);
 			}
 		}
 	}
@@ -78,7 +78,7 @@ int scanIncTest(bool is_segmented) {
 
 			if (accum != h_out[i]) {
 				success = false;
-				//printf("Scan Inclusive Violation: %.1d should be %.1d\n", h_out[i], accum);
+				printf("Scan Inclusive Violation: %.1d should be %.1d\n", h_out[i], accum);
 			}
 		}
 	}
@@ -160,7 +160,8 @@ int scanExcTest(bool is_segmented) {
 
 			if (accum != h_out[i]) {
 				success = false;
-				//printf("Scan Exclusive Violation: %.1d should be %.1d\n", h_out[i], accum);
+				printf("Sgm Scan Exclusive Violation: %.1d should be %.1d\n", h_out[i], accum);
+				break;
 			}
 		}
 	}
@@ -170,7 +171,8 @@ int scanExcTest(bool is_segmented) {
 
 			if (accum != h_out[i]) {
 				success = false;
-				//printf("Scan Exclusive Violation: %.1d should be %.1d\n", h_out[i], accum);
+				printf("Scan Exclusive Violation: %.1d should be %.1d\n", h_out[i], accum);
+				break;
 			}
 		}
 	}
