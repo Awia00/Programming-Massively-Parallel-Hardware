@@ -189,6 +189,57 @@ int scanExcTest(bool is_segmented) {
 	return 0;
 }
 
+int msspTest() {
+	const unsigned int num_threads = 8353455;
+	const unsigned int block_size = 512;
+	unsigned int mem_size = num_threads * sizeof(int);
+	unsigned int mem_size_int4 = num_threads * sizeof(MyInt4);
+
+	int* h_in = (int*)malloc(mem_size);
+	MyInt4* h_out = (MyInt4*)malloc(mem_size_int4);
+
+	for (unsigned int i = 0; i<num_threads; i++) {
+		h_in[i] = (rand() % 100) - 49;
+	}
+
+	unsigned long int elapsed;
+	struct timeval t_start, t_end, t_diff;
+	gettimeofday(&t_start, NULL);
+
+
+	{ // calling exclusive (segmented) scan
+		int* d_in;
+		MyInt4* d_out;
+		cudaMalloc((void**)&d_in, mem_size);
+		cudaMalloc((void**)&d_out, mem_size_int4);
+
+		// copy host memory to device
+		cudaMemcpy(d_in, h_in, mem_size, cudaMemcpyHostToDevice);
+
+		// execute kernel
+		mssp(block_size, num_threads, d_in, d_out);
+
+		// copy host memory to device
+		cudaMemcpy(h_out, d_out, mem_size_int4, cudaMemcpyDeviceToHost);
+
+		// cleanup memory
+		cudaFree(d_in);
+		cudaFree(d_out);
+	}
+
+	gettimeofday(&t_end, NULL);
+	timeval_subtract(&t_diff, &t_end, &t_start);
+	elapsed = (t_diff.tv_sec*1e6 + t_diff.tv_usec);
+	printf("MSSP GPU Kernel runs in: %lu microsecs\n", elapsed);
+	printf("MSSP result: %d\n", h_out[num_threads-1].x);
+
+	// cleanup memory
+	free(h_in);
+	free(h_out);
+
+	return 0;
+}
+
 int main(int argc, char** argv) {
 	scanIncTest(true);
 	scanIncTest(true);
@@ -197,4 +248,7 @@ int main(int argc, char** argv) {
 	scanExcTest(true);
 	scanExcTest(true);
 	scanExcTest(false);
+
+	msspTest();
+	msspTest();
 }

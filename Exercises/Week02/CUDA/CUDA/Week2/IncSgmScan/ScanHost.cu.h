@@ -3,6 +3,7 @@
 
 #include "ScanKernels.cu.h"
 #include "TimeOfDay.h"
+#include "device_launch_parameters.h"
 
 #include <time.h> 
 
@@ -92,8 +93,7 @@ void scanExc(    unsigned int  block_size,
     scanInc<OP,T>(block_size, d_size, d_in, d_inc);
 	cudaThreadSynchronize();
 
-    unsigned int num_blocks;
-    num_blocks = ( (d_size % block_size) == 0) ?
+	unsigned int num_blocks = ( (d_size % block_size) == 0) ?
                     d_size / block_size     :
                     d_size / block_size + 1 ;
     
@@ -195,9 +195,8 @@ void sgmScanExc( const unsigned int  block_size,
 
 	sgmScanInc<OP, T>(block_size, d_size, d_in, flags, d_inc);
 	cudaThreadSynchronize();
-    unsigned int num_blocks;
 
-    num_blocks = ( (d_size % block_size) == 0) ?
+	unsigned int num_blocks = ( (d_size % block_size) == 0) ?
                     d_size / block_size     :
                     d_size / block_size + 1 ;
 
@@ -205,4 +204,26 @@ void sgmScanExc( const unsigned int  block_size,
 	cudaThreadSynchronize();
 	cudaFree(d_inc);
 }
+
+void mssp(const unsigned int  block_size,
+	const unsigned long d_size,
+	int*            d_in,  //device
+	MyInt4*			d_out  //device
+) {
+	MyInt4 *d_mapped;
+	cudaMalloc((void**)&d_mapped, d_size * sizeof(MyInt4));
+
+	unsigned int num_blocks = ((d_size % block_size) == 0) ?
+		d_size / block_size :
+		d_size / block_size + 1;
+
+	msspTrivialMap<<<num_blocks, block_size>>>(d_in, d_mapped, d_size);
+
+	scanInc<MsspOp, MyInt4>(block_size, d_size, d_mapped, d_out);
+
+	
+	cudaFree(d_mapped);
+}
 #endif //SCAN_HOST
+
+
