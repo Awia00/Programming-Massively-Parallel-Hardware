@@ -337,7 +337,7 @@ __global__ void
 spMatVctMult_pairs(int* mat_inds, float* mat_vals, float* vct, int tot_size, float* tmp_pairs) {
     const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
     if(gid < tot_size) {
-        //tmp_pairs[gid] = ... fill in the blanks ...
+		tmp_pairs[gid] = mat_vals[gid] * vct[mat_inds[gid]]; // todo checkup
     }
 }
 
@@ -369,7 +369,8 @@ __global__ void
 write_lastSgmElem(float* tmp_scan, int* tmp_inds, int* flags_d, int tot_size, float* vct_res) {
     const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
     if(gid < tot_size) {
-        // ... fill in the blanks ...
+		if(gid == tot_size-1 || flags_d[gid+1] != 0)
+			vct_res[tmp_inds[gid] - 1] = tmp_scan[gid];
     }
 }
 

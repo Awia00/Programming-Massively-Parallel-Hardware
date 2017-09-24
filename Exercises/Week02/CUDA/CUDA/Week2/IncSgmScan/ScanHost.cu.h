@@ -224,6 +224,39 @@ void mssp(const unsigned int  block_size,
 	
 	cudaFree(d_mapped);
 }
+
+
+void sp_matrix_multiply(const unsigned int  block_size,
+	const unsigned long d_tot_size,
+	const unsigned long d_vct_len,
+	int*				d_mat_inds, 
+	float*				d_mat_vals,
+	float*				d_vct,
+	int*				d_flags,
+	float*				d_out	//device
+) {
+	float *d_pairs;
+	float *d_tmp_scan;
+	int *d_tmp_inds;
+	cudaMalloc((void**)&d_pairs, d_tot_size * sizeof(float));
+	cudaMalloc((void**)&d_tmp_scan, d_tot_size * sizeof(float));
+	cudaMalloc((void**)&d_tmp_inds, d_tot_size * sizeof(int));
+
+	unsigned int num_blocks;
+	num_blocks = ((d_tot_size % block_size) == 0) ?
+		d_tot_size / block_size :
+		d_tot_size / block_size + 1;
+
+	spMatVctMult_pairs<<<num_blocks, block_size>>> (d_mat_inds, d_mat_vals, d_vct, d_tot_size, d_pairs);
+
+	sgmScanInc<Add<float>, float>(block_size, d_tot_size, d_pairs, d_flags, d_tmp_scan);
+	scanInc<Add<int>,int>(block_size, d_tot_size, d_flags, d_tmp_inds);
+	
+	write_lastSgmElem<<<num_blocks, block_size>>> (d_tmp_scan, d_tmp_inds, d_flags, d_tot_size, d_out);
+	
+	cudaFree(d_pairs);
+	cudaFree(d_tmp_inds);
+}
 #endif //SCAN_HOST
 
 
