@@ -28,10 +28,9 @@ The program:
                 NOOP
                 BNE R4, R3, SEARCH  /I6 continue until all items
 
-l2 is delayed since it is a RAW on R5 from l1. Therefore the ID step of l2 must be after the WB step of l1.
-l3 is delayed since it is a RAW on R6 from l2. Therefore the ID step of l3 must be after the WB step of l2.
-l6 is delayed since it is a RAW on R4 from l5 (also R3 from l4 but l5 is the most binding). Therefore the ID step of l6 must be after the WB step of l5.
-
+l2 is delayed since it is a RAW on R5 from l1. Therefore the ID step of l2 must be after the WB step of l1 (3 clocks stall).
+l3 is delayed since it is a RAW on R6 from l2. Therefore the ID step of l3 must be after the WB step of l2 (3 clocks stall).
+l6 is delayed since it is a RAW on R4 from l5 (also R3 from l4 but l5 is the most binding). Therefore the ID step of l6 must be after the WB step of l5 (3 clocks stall).
 
 ### b)
 Stalling on Data hazards.
@@ -131,7 +130,8 @@ Therefore the program would finish in clock 14, also decreasing the number of cl
 
 
 ### e)
-I showcase a single unroll but it should generalize well to more than 1 unroll. I change the program in the following way. I assume that there is an even number of items in the list.
+I showcase a single unroll but it should generalize well to more than one unroll. 
+Assuming that there is an even number of items in the list, I change the program in the following way:
 
     SEARCH:     LW R5, 0(R3)        /I1 Load item1
                 LW R8, 4(R7)        /I2 Load item2
@@ -159,7 +159,7 @@ I showcase a single unroll but it should generalize well to more than 1 unroll. 
 | l10 | ADDI R7, R7, #4    |    |    |    |    |    |    |    |    |    | IF  | ID  | EX  | ME  | WB  |     |
 | l11 | BNE R4, R7, SEARCH |    |    |    |    |    |    |    |    |    |     | IF  | ID  | EX  | ME  | WB  |
 
-At only 1 more clock than the unrolled version, 2 iterations of the loop can be calculated.
+At only 1 more clock than the unrolled version, 2 iterations of the loop can be calculated. Futhermore this is optimal since there is no stalls.
 
 In the case where a branch is taken stalls still occur as shown on the table below.
 
@@ -177,7 +177,7 @@ In the case where a branch is taken stalls still occur as shown on the table bel
 | l10 | ADDI R7, R7, #4    |    |    |    |    |    |    |    |    |    |     | IF  | ID  | EX  | ME  | WB  |     |     |
 | l11 | BNE R4, R7, SEARCH |    |    |    |    |    |    |    |    |    |     |     | IF  | ID  | ID  | EX  | ME  | WB  |
 
-Here we still have two stall at l7 and l9. Delaying branches could help by placing the L9 and L10 instructions right after the branch since R3 and R7 is not used by any following instructions.
+Here we still have two stalls at l7 and l9. Delaying branches could help by placing the L9 and L10 instructions right after the branch operation since R3 and R7 is not used by any later operations.
 
     SEARCH:     LW R5, 0(R3)        /I1 Load item1
                 LW R8, 4(R7)        /I2 Load item2
@@ -207,5 +207,6 @@ Results in the following:
 | l8  | ADDI R1, R1, #1    |    |    |    |    |    |    |    |    |    | IF  |     |     |     |     |     |
 | l11 | BNE R4, R7, SEARCH |    |    |    |    |    |    |    |    |    |     | IF  | ID  | EX  | ME  | WB  |
 
-Ending up in the same amount of instruction as for the no matches case. We know this is optimal since we have no stalls. This program is also just as fast with no matches.
+Ending up in the same amount of instruction as for the no matches case. We know this is optimal since we have no stalls. 
+This program would also be optimal with no matches.
 
