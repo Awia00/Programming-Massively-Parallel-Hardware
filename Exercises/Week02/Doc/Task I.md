@@ -15,8 +15,9 @@ See CUDA folder for the implementation. To compile run "$ make" to run the progr
 
 ## Task I.3
 
-Instead of flattening the sequential code, it was observed that matrix vector multiplication is a sgmScan with the plus operator. So the futhark implementation is based on creating the flags and then mapping the results of each row and then scanning over the result.
-The cuda program is implemented almost as the futhark program, with the exception that I choose to just calculate the flag array in advance. 
+Instead of flattening the sequential code directly, it was observed that matrix vector multiplication is a sgmScan with the plus operator. So the futhark implementation is based on creating the flags and then mapping the results of each row and then scanning over the result.
+The cuda program is implemented almost as the futhark program, with the exceptions of pre-calculatation of the flag array, and the write_lastSgmElem method.
+
 The implementation is tested on a decently sized square matrix with no sparse elements. It should work on matrices with zero entries but I ran out of time to make a proper way of generating such a matrix. The implementation is validated with a sequential imperative implementation.
 
 See CUDA and Futhark folders for the implementation. To compile run "$ make" to run the program "$ make run"
