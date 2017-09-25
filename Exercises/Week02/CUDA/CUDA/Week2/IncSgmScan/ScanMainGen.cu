@@ -268,8 +268,8 @@ void spMatrixVctMultiply(float* mat_val, int* mat_inds, float* vct, int num_rows
 
 void spMatrixVctTest() {
 	const unsigned int block_size = 512;
-	const unsigned int matrix_height = 1000;
-	const unsigned int matrix_width = 1000;
+	const unsigned int matrix_height = 5733;
+	const unsigned int matrix_width = 5733;
 	const unsigned int matrix_size = matrix_height * matrix_width;
 	const unsigned int vector_size = matrix_height;
 
@@ -285,6 +285,7 @@ void spMatrixVctTest() {
 	int* h_shp = (int*)calloc(matrix_height, sizeof(int));
 	int* h_flags = (int*)calloc(matrix_size, sizeof(int));
 
+	// generate matrix. Did not generate a matrix with any sparse entries, but code shuld be able to handle it.
 	for (unsigned int i = 0; i < matrix_height; i++) {
 		int nonZeros = 0;
 		for (unsigned int j = 0; j < matrix_width; j++) {
@@ -321,7 +322,7 @@ void spMatrixVctTest() {
 		cudaMemcpy(d_flags, h_flags, mem_size_mat_inds, cudaMemcpyHostToDevice);
 
 		// execute kernel
-		sp_matrix_multiply(block_size, matrix_size, matrix_height, d_mat_inds, d_mat_val, d_vct, d_flags, d_out);
+		sp_matrix_multiply(block_size, matrix_size, vector_size, d_mat_inds, d_mat_val, d_vct, d_flags, d_out);
 
 		// copy host memory to device
 		cudaMemcpy(h_out, d_out, mem_size_vct, cudaMemcpyDeviceToHost);
