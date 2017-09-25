@@ -58,12 +58,12 @@ int scanIncTest(bool is_segmented) {
 	gettimeofday(&t_end, NULL);
 	timeval_subtract(&t_diff, &t_end, &t_start);
 	elapsed = (t_diff.tv_sec*1e6 + t_diff.tv_usec);
-	printf("Scan Inclusive GPU Kernel runs in: %lu microsecs\n", elapsed);
 
 	// validation
 	bool success = true;
 	int  accum = 0;
 	if (is_segmented) {
+		printf("Sgm Scan Inclusive GPU Kernel runs in: %lu microsecs\n", elapsed);
 		for (int i = 0; i<num_threads; i++) {
 			if (i % sgm_size == 0) accum = 0;
 			accum += 1;
@@ -75,6 +75,7 @@ int scanIncTest(bool is_segmented) {
 		}
 	}
 	else {
+		printf("Scan Inclusive GPU Kernel runs in: %lu microsecs\n", elapsed);
 		for (int i = 0; i<num_threads; i++) {
 			accum += 1;
 
@@ -150,12 +151,12 @@ int scanExcTest(bool is_segmented) {
 	gettimeofday(&t_end, NULL);
 	timeval_subtract(&t_diff, &t_end, &t_start);
 	elapsed = (t_diff.tv_sec*1e6 + t_diff.tv_usec);
-	printf("Scan Exclusive GPU Kernel runs in: %lu microsecs\n", elapsed);
 
 	// validation
 	bool success = true;
 	int  accum = -1;
 	if (is_segmented) {
+		printf("Sgm Scan Exclusive GPU Kernel runs in: %lu microsecs\n", elapsed);
 		for (int i = 0; i<num_threads; i++) {
 			if (i % sgm_size == 0) accum = -1;
 			accum += 1;
@@ -168,6 +169,7 @@ int scanExcTest(bool is_segmented) {
 		}
 	}
 	else {
+		printf("Scan Exclusive GPU Kernel runs in: %lu microsecs\n", elapsed);
 		for (int i = 0; i<num_threads; i++) {
 			accum += 1;
 
