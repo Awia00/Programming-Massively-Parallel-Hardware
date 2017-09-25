@@ -78,7 +78,7 @@ let spMatVctMult [num_elms] [vct_len] [num_rows]
   let flags    = scatter (replicate num_elms 0) shp_inds (replicate num_rows 1)
   let tmps     = map(\i -> mat[i].y * vct[shp_inds[i]]) iota num_elems
   let sums     = sgmSumF32 flags tmps
-  let res      = filter(\(sum, flag) -> flag!=0) (zip sums flags)
+  let res      = map(\sc -> sums[sc]) shp_sc
   in  res
 
 
