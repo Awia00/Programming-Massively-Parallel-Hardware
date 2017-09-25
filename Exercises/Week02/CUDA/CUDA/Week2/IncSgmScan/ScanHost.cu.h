@@ -2,7 +2,8 @@
 #define SCAN_HOST
 
 #include "ScanKernels.cu.h"
-#include "TimeOfDay.h"
+// #include "TimeOfDay.h" // Only on windows
+#include <sys/time.h> // Only on linux
 #include "device_launch_parameters.h"
 
 #include <time.h> 
