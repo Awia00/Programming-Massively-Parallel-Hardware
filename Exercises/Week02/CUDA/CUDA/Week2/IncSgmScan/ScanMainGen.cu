@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+//#include "TimeOfDay.h" // Only on windows
+#include <sys/time.h> // Only on linux
 #include "ScanHost.cu.h"
 
 int scanIncTest(bool is_segmented) {
@@ -83,8 +85,8 @@ int scanIncTest(bool is_segmented) {
 		}
 	}
 
-	if (success) printf("\nScan Inclusive +   VALID RESULT!\n");
-	else        printf("\nScan Inclusive + INVALID RESULT!\n");
+	if (success) printf("Scan Inclusive +   VALID RESULT!\n");
+	else        printf("Scan Inclusive + INVALID RESULT!\n");
 
 
 	// cleanup memory
@@ -177,8 +179,8 @@ int scanExcTest(bool is_segmented) {
 		}
 	}
 
-	if (success) printf("\nScan Exclusive +   VALID RESULT!\n");
-	else        printf("\nScan Exclusive + INVALID RESULT!\n");
+	if (success) printf("Scan Exclusive +   VALID RESULT!\n");
+	else        printf("Scan Exclusive + INVALID RESULT!\n");
 
 
 	// cleanup memory
@@ -211,7 +213,7 @@ int msspTest() {
 		h_in[i] = (rand() % 100) - 49;
 	}
 
-	unsigned long int elapsed;
+	unsigned long int elapsed, elapsedCPU;
 	struct timeval t_start, t_end, t_diff;
 	gettimeofday(&t_start, NULL);
 
@@ -239,13 +241,19 @@ int msspTest() {
 	gettimeofday(&t_end, NULL);
 	timeval_subtract(&t_diff, &t_end, &t_start);
 	elapsed = (t_diff.tv_sec*1e6 + t_diff.tv_usec);
-	printf("MSSP GPU Kernel runs in: %lu microsecs\n", elapsed);
+	printf("MSSP GPU Kernel runs in: \t%lu microsecs\n", elapsed);
 
 	// validate
+	gettimeofday(&t_start, NULL);
 	int cpuResult = msspCpu(h_in, num_threads);
+	gettimeofday(&t_end, NULL);
+	timeval_subtract(&t_diff, &t_end, &t_start);
+	elapsedCPU = (t_diff.tv_sec*1e6 + t_diff.tv_usec);
+	printf("MSSP CPU runs in: \t\t%lu microsecs\n", elapsedCPU);
+	
 
-	if (cpuResult == h_out[num_threads - 1].x)	printf("\nMSSP +   VALID RESULT!\n");
-	else										printf("\nMSSP + INVALID RESULT!\n");
+	if (cpuResult == h_out[num_threads - 1].x)	printf("MSSP +   VALID RESULT!\n");
+	else										printf("MSSP + INVALID RESULT!\n");
 
 	// cleanup memory
 	free(h_in);
@@ -298,7 +306,7 @@ void spMatrixVctTest() {
 		h_flags[i*matrix_width] = 1;
 	}
 
-	unsigned long int elapsed;
+	unsigned long int elapsed, elapsedCPU;
 	struct timeval t_start, t_end, t_diff;
 	gettimeofday(&t_start, NULL);
 
@@ -338,23 +346,32 @@ void spMatrixVctTest() {
 	gettimeofday(&t_end, NULL);
 	timeval_subtract(&t_diff, &t_end, &t_start);
 	elapsed = (t_diff.tv_sec*1e6 + t_diff.tv_usec);
-	printf("MSSP GPU Kernel runs in: %lu microsecs\n", elapsed);
+	printf("SP MV MUL GPU Kernel runs in: \t%lu microsecs\n", elapsed);
 
 	// validate
 	float* h_test = (float*)malloc(mem_size_vct);
+	
+	gettimeofday(&t_start, NULL);
 	spMatrixVctMultiply(h_mat_val, h_mat_inds, h_vct, matrix_height, h_shp, h_test);
+	gettimeofday(&t_end, NULL);
+	timeval_subtract(&t_diff, &t_end, &t_start);
+	elapsedCPU = (t_diff.tv_sec*1e6 + t_diff.tv_usec);
+	printf("SP MV MUL CPU runs in: \t\t%lu microsecs\n", elapsedCPU);
+
+	elapsed = (t_diff.tv_sec*1e6 + t_diff.tv_usec);
+
 
 	bool success = true;
 	for (int i = 0; i < matrix_height; i++) {
 		if (abs(h_test[i] - h_out[i]) > 0.0001f) {
 			success = false;
-			printf("\nFailed at: h_test[%d]: %f, h_out[%d]=%f\n", i, h_test[i], i, h_out[i]);
+			printf("Failed at: h_test[%d]: %f, h_out[%d]=%f\n", i, h_test[i], i, h_out[i]);
 			break;
 		}
 	}
 
-	if (success) printf("\nSparse Matrix Vector Multiply +   VALID RESULT!\n");
-	else        printf("\nSparse Matrix Vector Multiply + INVALID RESULT!\n");
+	if (success) printf("Sparse Matrix Vector Multiply +   VALID RESULT!\n");
+	else        printf("Sparse Matrix Vector Multiply + INVALID RESULT!\n");
 
 	free(h_mat_val);
 	free(h_vct);
@@ -364,17 +381,33 @@ void spMatrixVctTest() {
 }
 
 int main(int argc, char** argv) {
+	printf("\n");
 	scanIncTest(true);
+	printf("\n==========================\n");
 	scanIncTest(true);
+	printf("\n==========================\n");
 	scanIncTest(false);
-
+	
+	printf("\n==========================");
+	printf("\n==========================\n\n");
+	
 	scanExcTest(true);
+	printf("\n==========================\n");
 	scanExcTest(true);
+	printf("\n==========================\n");
 	scanExcTest(false);
 
+	printf("\n==========================");
+	printf("\n==========================\n\n");
+
 	msspTest();
+	printf("\n==========================\n");
 	msspTest();
 
+	printf("\n==========================");
+	printf("\n==========================\n\n");
+
 	spMatrixVctTest();
+	printf("\n==========================\n");
 	spMatrixVctTest();
 }
