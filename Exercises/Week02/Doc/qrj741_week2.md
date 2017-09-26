@@ -286,20 +286,18 @@ Vectorized
 
 ### a)
 
-        ADDI R6,R0,#64      // set R6 to the stride 64
-        L.V V1,0(R1),R6     // load p
-Loop:   L.V V2,0(R2),R6     // load slice of x 
-        L.V V3,0(R3),R6     // load slice of y
-        MUL.V V3,V1,V2      // x[k+j] * y[k+j] 
-        ADD.V V1,V1,V3      // p += x[k+j] * y[k+j] 
-        SUBBI R2,R2,#512    // jump to next slices,
-        SUBBI R3,R3,#512    // jump to next slices,
-        SUBBI R4,R4,R6      // jump by stride 
-        BNEZ R4,LOOP        // 
+I take a look at the inner loop
 
-I probably have misunderstood something here especially concerning the SUBBI instruction and why it jumps the 8*64.
-Furthermore I am missing the strip-mined outer loop.
-
+        R1 holds the stride = 1
+        R2 holds current address of x[k]
+        R3 holds current address of x[k]
+        V4 holds vector p
+        
+        // since the inner loop is 64 length we dont need to write it as a loop since it all fits in vector
+        L.V V1, 0(R2) R1    // load x[k] and the 64 entries 
+        L.V V2, 0(R3) R1    // load y[k] and the 64 entries 
+        MUL.V   V3,V1,V2    // x[k+j] * y[k+j] 
+        ADD.V   V4,V4,V3    // p = x[k+j] * y[k+j]
 
 ### b)
 
@@ -308,18 +306,21 @@ Furthermore I am missing the strip-mined outer loop.
     startup(add)            = 5 cycles
     Vector length           = 64
     Iterations              = 1024 / Vector Length = 16
-    p += x[k+j] * y[k+j]    = 3 * startup(load) + startup(mult) + startup(addv) + startup(store) + Vector length <=> 3*30 + 10 + 5 + 30 + 64 = 199
-        // not assuming loads in parallel - hence the 3 * startup(load)
+    p += x[k+j] * y[k+j]    = 
+                                L.V V1, 0(R2) R1: startup(load)
+                                L.V V2, 0(R3) R1: startup(load)
+                                MUL.V   V3,V1,V2: startup(mul)
+                                ADD.V   V4,V4,V3: startup(add)
+                                
+                                30 + 10 + 5 + 64 = 109
 
-    Now each of the 199 cycles must be done 16 times (for each iteration) totalling at: 3184 cycles.
+                                // at some point a startup(store) for storing p
+
+    Now each of the 109 cycles must be done 16 times (for each iteration) and adding 30 for startup(store) totalling at: 1744+30 = 1774 cycles.
 
 ### c)
-Since the matrix matrix multiplication is just a dot product for each column and row, we can reuse the pervious result.
-Foreach entry in the output matrix we have to calculate the dot product over some row and column. Since the output matrix also has 1024 entries we get: 
+Since the matrix matrix multiplication is just a dot product for each column and row, we can reuse the previous result.
+Foreach entry in the output matrix we have to calculate the dot product over some row and column. Since the output matrix also has 1024*1024 entries we get: 
     
-    1024 * 3184 = 3 260 416 cycles
-
-Given enough space in the memory bank we can save one startup(load) dot product since each row must be multiplied with every column and therefore the load of a row from a previous iteration can be reused in the next iteration. Though we still need to pay the startup(load) once for each row. This results in the following number of cycles.
-
-    169 * 16 * 1024 + 30*1024 = 2 799 616 cycles
-
+    1024 * 1024 * 1774 cycles = 1 860 173 824 cycles
+    
