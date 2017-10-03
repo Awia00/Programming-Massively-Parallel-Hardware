@@ -23,12 +23,12 @@ def objectiveValue(tableau):
 
 def canImprove(tableau):
    lastRow = tableau[-1]
-   return any(x &gt; 0 for x in lastRow[:-1])
+   return any(x > 0 for x in lastRow[:-1])
 
 def findPivotIndex(tableau):
    # pick first nonzero index of the last row
-   column = [i for i,x in enumerate(tableau[-1][:-1]) if x &gt; 0][0]
-   quotients = [(i, r[-1] / r[column]) for i,r in enumerate(tableau[:-1]) if r[column] &gt; 0]
+   column = [i for i,x in enumerate(tableau[-1][:-1]) if x > 0][0]
+   quotients = [(i, r[-1] / r[column]) for i,r in enumerate(tableau[:-1]) if r[column] > 0]
  
    # pick row index minimizing the quotient
    row = min(quotients, key=lambda x: x[1])[0]
