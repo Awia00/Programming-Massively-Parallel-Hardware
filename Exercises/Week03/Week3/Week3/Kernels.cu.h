@@ -1,5 +1,5 @@
-#ifndef KERNELS
-#define KERNELS
+#ifndef SCAN_KERS
+#define SCAN_KERS
 
 #include <cuda_runtime.h>
 #include "device_launch_parameters.h"
@@ -317,23 +317,5 @@ write_lastSgmElem(float* tmp_scan, int* tmp_inds, int* flags_d, int tot_size, fl
 }
 
 
-template<int T>
-__global__ void 
-matTranspose(float* A, float* trA, int rowsA, int colsA) {
-	__shared__ float tile[T][T + 1];
-	int tidx = threadIdx.x;
-	int tidy = threadIdx.y;
-	int j = blockIdx.x*T + tidx;
-	int i = blockIdx.y*T + tidy;
-	if (j < colsA && i < rowsA)
-		tile[tidy][tidx] = A[i*colsA + j];
-	__syncthreads();
-	i = blockIdx.y*T + threadIdx.x;
-	j = blockIdx.x*T + threadIdx.y;
-	if (j < colsA && i < rowsA)
-		trA[j*rowsA + i] = tile[tidx][tidy];
-}
-
-
-#endif //KERNELS
+#endif //SCAN_KERS
 

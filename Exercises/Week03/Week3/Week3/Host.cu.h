@@ -4,8 +4,6 @@
 #include "Kernels.cu.h"
 #include "device_launch_parameters.h"
 
-#include "DeviceWrapper.cu.h"
-
 
 /**
  * block_size is the size of the cuda block (must be a multiple 
@@ -196,24 +194,10 @@ void sgmScanExc( const unsigned int  block_size,
 	cudaFree(d_inc);
 }
 
-class GPU_Matrix : public Matrix {
-public:
-	GPU_Matrix();
-	virtual ~GPU_Matrix();
-	void sp_matrix_vector_multiply(const unsigned int  block_size,
-		const unsigned long d_tot_size,
-		const unsigned long d_vct_len,
-		int*				d_mat_inds,
-		float*				d_mat_vals,
-		float*				d_vct,
-		int*				d_flags,
-		float*				d_out);
-};
-
-void GPU_Matrix::sp_matrix_vector_multiply(const unsigned int  block_size,
+void sp_matrix_vector_multiply(const unsigned int  block_size,
 	const unsigned long d_tot_size,
 	const unsigned long d_vct_len,
-	int*				d_mat_inds,
+	int*				d_mat_inds, 
 	float*				d_mat_vals,
 	float*				d_vct,
 	int*				d_flags,
@@ -231,17 +215,16 @@ void GPU_Matrix::sp_matrix_vector_multiply(const unsigned int  block_size,
 		d_tot_size / block_size :
 		d_tot_size / block_size + 1;
 
-	spMatVctMult_pairs << <num_blocks, block_size >> > (d_mat_inds, d_mat_vals, d_vct, d_tot_size, d_pairs);
+	spMatVctMult_pairs<<<num_blocks, block_size>>> (d_mat_inds, d_mat_vals, d_vct, d_tot_size, d_pairs);
 
 	sgmScanInc<Add<float>, float>(block_size, d_tot_size, d_pairs, d_flags, d_tmp_scan);
-	scanInc<Add<int>, int>(block_size, d_tot_size, d_flags, d_tmp_inds);
-
-	write_lastSgmElem << <num_blocks, block_size >> > (d_tmp_scan, d_tmp_inds, d_flags, d_tot_size, d_out);
-
+	scanInc<Add<int>,int>(block_size, d_tot_size, d_flags, d_tmp_inds);
+	
+	write_lastSgmElem<<<num_blocks, block_size>>> (d_tmp_scan, d_tmp_inds, d_flags, d_tot_size, d_out);
+	
 	cudaFree(d_pairs);
 	cudaFree(d_tmp_inds);
 }
-
 #endif //SCAN_HOST
 
 

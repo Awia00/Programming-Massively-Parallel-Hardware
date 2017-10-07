@@ -3,7 +3,6 @@
 #include <string.h>
 #include <math.h>
 #include "Host.cu.h"
-#include "DeviceWrapper.cu.h"
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #include "TimeOfDay.h" // Only on windows
@@ -199,6 +198,18 @@ int scanExcTest(bool is_segmented) {
 }
 
 
+void spMatrixVctMultiply(float* mat_val, int* mat_inds, float* vct, int num_rows, int* shp, float* res) {
+	int offset = 0;
+	for (int i = 0; i < num_rows; i++) {
+		int sum = 0, row_len = shp[i];
+		for (int j = 0; j < row_len; j++) {
+			sum += mat_val[j + offset] * vct[mat_inds[j + offset]];
+		}
+		offset += row_len;
+		res[i] = sum;
+	}
+}
+
 void spMatrixVctTest() {
 	const unsigned int block_size = 512;
 	const unsigned int matrix_height = 5733;
@@ -255,9 +266,7 @@ void spMatrixVctTest() {
 		cudaMemcpy(d_flags, h_flags, mem_size_mat_inds, cudaMemcpyHostToDevice);
 
 		// execute kernel
-		
-		Matrix* test = new GPU_Matrix();
-		test->sp_matrix_vector_multiply(block_size, matrix_size, vector_size, d_mat_inds, d_mat_val, d_vct, d_flags, d_out);
+		sp_matrix_vector_multiply(block_size, matrix_size, vector_size, d_mat_inds, d_mat_val, d_vct, d_flags, d_out);
 
 		// copy host memory to device
 		cudaMemcpy(h_out, d_out, mem_size_vct, cudaMemcpyDeviceToHost);
@@ -279,7 +288,7 @@ void spMatrixVctTest() {
 	float* h_test = (float*)malloc(mem_size_vct);
 	
 	gettimeofday(&t_start, NULL);
-	//spMatrixVctMultiply(h_mat_val, h_mat_inds, h_vct, matrix_height, h_shp, h_test);
+	spMatrixVctMultiply(h_mat_val, h_mat_inds, h_vct, matrix_height, h_shp, h_test);
 	gettimeofday(&t_end, NULL);
 	timeval_subtract(&t_diff, &t_end, &t_start);
 	elapsedCPU = (t_diff.tv_sec*1e6 + t_diff.tv_usec);
