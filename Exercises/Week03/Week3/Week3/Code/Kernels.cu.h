@@ -364,8 +364,7 @@ __global__ void squareAccumulatorTranspose(float* Atrans, float* B, int N) {
     }
 }
 
-template<int T>
-__global__ void matMatMulNaive(float* A, float* B, float* C, int n, int m, int u) {
+__global__ void matMatMulNaive(float* A, float* B, float* C, int n, int m, int u, int T) {
     int tidx = threadIdx.x;
     int tidy = threadIdx.y;
     int j = blockIdx.x*T + tidx;

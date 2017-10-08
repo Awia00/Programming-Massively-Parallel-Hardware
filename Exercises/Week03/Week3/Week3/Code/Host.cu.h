@@ -228,21 +228,25 @@ void sp_matrix_vector_multiply(const unsigned int  block_size,
 
 // Week 3: Task 1
 template<int T>
-void matrix_transpose(unsigned int blocksize,
+void matrix_transpose(unsigned int block_size,
     const unsigned long M,
 	const unsigned long N,
 	float*				d_A,
     float*				d_out,
     bool                optimized
 ) {
-    int dimy = ceil( ((float)M) / T );
-    int dimx = ceil( ((float)N) / T );
-    dim3 block(T,T,1), grid(dimx,dimy,1);
-
-    if (optimized)
-		matrixTranspose<T><<<grid, block>>> (d_A, d_out, M, N);
-    else 
-		matrixTransposeNaive<T><<<grid, block>>>(d_A, d_out, M, N);
+	if (optimized) {
+		int dimy = ceil(((float)M) / T);
+		int dimx = ceil(((float)N) / T);
+		dim3 block(T, T, 1), grid(dimx, dimy, 1);
+		matrixTranspose<T> << <grid, block >> > (d_A, d_out, M, N);
+	}
+	else {
+		int dimy = ceil(((float)M) / block_size);
+		int dimx = ceil(((float)N) / block_size);
+		dim3 block(block_size, block_size, 1), grid(dimx, dimy, 1);
+		matrixTransposeNaive<T> << <grid, block >> >(d_A, d_out, M, N);
+	}
 }
 
 
@@ -258,16 +262,16 @@ void square_accumulator(unsigned int block_size,
     N / block_size     :
     N / block_size + 1 ;
 
-    int size = N*64;
+    int size = N*T;
     float *d_in_trans;
     float *d_out_trans;
 	cudaMalloc((void**)&d_in_trans, size * sizeof(float));
 	cudaMalloc((void**)&d_out_trans, size * sizeof(float));
 
     if(optimized) {
-		matrix_transpose<T>(block_size, N, 64, d_in, d_in_trans, true);
+		matrix_transpose<T>(block_size, N, T, d_in, d_in_trans, true);
 		squareAccumulatorTranspose<<<num_blocks, block_size>>>(d_in_trans, d_out_trans, N);
-        matrix_transpose<T>(block_size, N, 64, d_out_trans, d_out, true);
+        matrix_transpose<T>(block_size, N, T, d_out_trans, d_out, true);
     } else {
 		squareAccumulator<<<num_blocks, block_size >>>(d_in, d_out, N);
     }
@@ -275,7 +279,7 @@ void square_accumulator(unsigned int block_size,
 
 // Week 3: Task 3
 template<int T>
-void matrix_matrix_mul(unsigned int blocksize,
+void matrix_matrix_mul(unsigned int block_size,
     const unsigned long M,
 	const unsigned long N,
 	const unsigned long U,
@@ -284,14 +288,21 @@ void matrix_matrix_mul(unsigned int blocksize,
     float*				d_C, 
     bool optimized
 ) {
-    int dimy = ceil( ((float)M) / T );
-    int dimx = ceil( ((float)N) / T );
-    dim3 block(T,T,1), grid(dimx,dimy,1);
-
-    if(optimized)
-        matMatMul<T><<<grid, block>>>(d_A, d_B, d_C, M, N, U);
-    else
-        matMatMulNaive<T><<<grid, block>>>(d_A, d_B, d_C, M, N, U);
+	if (optimized) {
+		int dimy = ceil(((float)M) / T);
+		int dimx = ceil(((float)N) / T);
+		dim3 block(T, T, 1), grid(dimx, dimy, 1);
+		
+		matMatMul<T> << <grid, block >> >(d_A, d_B, d_C, M, N, U);
+	}
+	else {
+		int dimy = ceil(((float)M) / block_size);
+		int dimx = ceil(((float)N) / block_size);
+		dim3 block(block_size, block_size, 1), grid(dimx, dimy, 1);
+		
+		matMatMulNaive<< <grid, block >> >(d_A, d_B, d_C, M, N, U, block_size);
+	}
+    
     
 }
 #endif //SCAN_HOST

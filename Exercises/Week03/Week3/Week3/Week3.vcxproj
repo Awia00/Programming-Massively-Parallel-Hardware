@@ -18,6 +18,18 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Code\Host.cu.h" />
+    <ClInclude Include="Code\Kernels.cu.h" />
+    <ClInclude Include="Code\Main.h" />
+    <ClInclude Include="Code\TimeOfDay.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="Code\Main.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Code\Makefile" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D92EDA74-4F29-4A13-B0E2-8E33C125368B}</ProjectGuid>
     <RootNamespace>Week3</RootNamespace>
@@ -151,18 +163,6 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <TargetMachinePlatform>64</TargetMachinePlatform>
     </CudaCompile>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <CudaCompile Include="Main.cu" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Makefile" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Host.cu.h" />
-    <ClInclude Include="Kernels.cu.h" />
-    <ClInclude Include="Main.h" />
-    <ClInclude Include="TimeOfDay.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 9.0.targets" />

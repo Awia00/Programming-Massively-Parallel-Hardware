@@ -4,11 +4,12 @@
 #include <math.h>
 #include "Host.cu.h"
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
 #include "TimeOfDay.h" // Only on windows
 #else
 #include <sys/time.h> // Only on linux
 #endif
+
 
 int timeval_subtract(struct timeval *result, struct timeval *t2, struct timeval *t1)
 {
@@ -36,15 +37,15 @@ void matrixTransposeTest(bool optimized) {
 
 	const unsigned int block_size = 512;
 	const unsigned int T = 64;
-	const unsigned int N = 5000;
-	const unsigned int M = 5000;
+	const unsigned int N = 8000;
+	const unsigned int M = 8000;
 	unsigned int mem_size_A = M*N * sizeof(float);	
 	float* h_A = (float*)malloc(mem_size_A);
 	float* h_A_out = (float*)malloc(mem_size_A);
 
 	for(int i = 0; i<M; i++) {
 		for(int j = 0; j<N; j++){
-			h_A[i*M + j] = rand() % 100;
+			h_A[i*N + j] = rand() % 100;
 		}
 	}
 
@@ -78,7 +79,7 @@ void matrixTransposeTest(bool optimized) {
 		printf("M-transpose optimized time\t %d\n", elapsed);
 	}
 	else {
-		printf("M-transpose naive time\t %d\n", elapsed);
+		printf("M-transpose naive time\t\t %d\n", elapsed);
 	}
 
 	free(h_A);
@@ -93,15 +94,14 @@ void squareAccumulatorTest(bool optimized) {
 
 	const unsigned int block_size = 512;
 	const unsigned int T = 64;
-	const unsigned int N = 5000;
-	const unsigned int M = 5000;
-	unsigned int mem_size = M*N * sizeof(float);	
+	const unsigned int N = 250000;
+	unsigned int mem_size = N*T * sizeof(float);	
 	float* h_A = (float*)malloc(mem_size);
 	float* h_B = (float*)malloc(mem_size);
 
-	for(int i = 0; i<M; i++) {
-		for(int j = 0; j<N; j++){
-			h_A[i*M + j] = rand() % 100;
+	for(int i = 0; i<N; i++) {
+		for(int j = 0; j<T; j++){
+			h_A[i*T + j] = rand() % 100;
 		}
 	}
 
@@ -134,7 +134,7 @@ void squareAccumulatorTest(bool optimized) {
 	if (optimized)
 		printf("Square Accumulator optimized time\t %d\n", elapsed);
 	else
-		printf("Square Accumulator naive time\t %d\n", elapsed);
+		printf("Square Accumulator naive time\t\t %d\n", elapsed);
 
 	free(h_A);
 	free(h_B);
@@ -160,9 +160,9 @@ void matrixMatrixMulTest(bool optimized){
 
 	const unsigned int block_size = 512;
 	const unsigned int T = 64;
-	const unsigned int N = 5000;
-	const unsigned int M = 5000;
-	const unsigned int U = 5000;
+	const unsigned int N = 8000;
+	const unsigned int M = 8000;
+	const unsigned int U = 8000;
 	unsigned int mem_size_A = M*U * sizeof(float);	
 	unsigned int mem_size_B = U*N * sizeof(float);	
 	unsigned int mem_size_C = M*N * sizeof(float);
@@ -220,12 +220,12 @@ void matrixMatrixMulTest(bool optimized){
 
 	// Print the results
 	if (optimized) {
-		printf("MMM optimized time\t %d\n", elapsed);
-		printf("MMM gigaFlops optimized %d\n", gigaFlops);
+		printf("MMM optimized time\t\t %d\n", elapsed);
+		printf("MMM gigaFlops optimized\t %f\n", gigaFlops);
 	}
 	else {
-		printf("MMM naive time\t %d\n", elapsed);
-		printf("MMM gigaFlops naive %d\n", gigaFlops);
+		printf("MMM naive time\t\t %d\n", elapsed);
+		printf("MMM gigaFlops naive\t %f\n", gigaFlops);
 	}
 
 	free(h_A);
@@ -240,14 +240,14 @@ int main(int argc, char** argv) {
 	printf("\n==========================\n");
 	matrixTransposeTest(true);
 
-	printf("\n==========================\n"); 
+	printf("\n=========================="); 
 	printf("\n==========================\n");
 
 	squareAccumulatorTest(false);
 	printf("\n==========================\n");
 	squareAccumulatorTest(true);
 
-	printf("\n==========================\n"); 
+	printf("\n=========================="); 
 	printf("\n==========================\n");
 
 	matrixMatrixMulTest(false);
