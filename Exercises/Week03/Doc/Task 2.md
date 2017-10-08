@@ -28,3 +28,11 @@ If the sqrt is removed then the only operator left, the multiply is associative 
 ### c,d) 
 See cuda folder for implementation
 
+64*250000 matrix
+
+Running times:
+    Square Accumulator naive time            4848
+    Square Accumulator optimized time        19
+
+But it does not seem precise as the running time feels very similar.
+
