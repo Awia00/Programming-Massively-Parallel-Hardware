@@ -27,3 +27,4 @@ If the sqrt is removed then the only operator left, the multiply is associative 
 
 ### c,d) 
 See cuda folder for implementation
+

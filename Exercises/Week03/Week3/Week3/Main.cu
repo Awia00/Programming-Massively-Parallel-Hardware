@@ -137,21 +137,194 @@ void matrixTranspose(float* matrix, float* outMatrix, int n, int m) {
 	}
 }
 
-void matrixTransposeTest(){
+void matrixTransposeTest(bool optimized) {
+	const unsigned int block_size = 512;
+	const unsigned int N = 1000;
+	const unsigned int M = 1000;
+	unsigned int mem_size_A = M*N * sizeof(float);	
+	float* h_A = (float*)malloc(mem_size_A);
+	float* h_A_out = (float*)malloc(mem_size_A);
+
+	for(int i = 0; i<M; i++) {
+		for(int j = 0; j<N; j++){
+			A[i*M + j] = rand() % 100;
+		}
+	}
 	
+	unsigned long int elapsed;
+	struct timeval t_start, t_end, t_diff;
+
+	float* d_A;
+	float* d_A_out;
+	cudaMalloc((void**)&d_A, mem_size_A);
+	cudaMalloc((void**)&d_A_out, mem_size_A);
+	// copy host memory to device
+	cudaMemcpy(d_A, h_A, mem_size_A, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_A_out, h_A_out, mem_size_A, cudaMemcpyHostToDevice);
+
+	unsigned long int elapsed;
+	struct timeval t_start,t_end,t_diff;
+	gettimeofday(&t_start, NULL);
+	
+	// run 
+	matrix_transpose(d_A, d_A_out, M, N, optimized);
+	__syncThreads();
+	
+	gettimeofday(&t_end, NULL);
+	timeval_subtract(&t_diff, &t_end,&t_start);
+	if(optimized) {
+		printf("M-transpose optimized time\t %d", elapsedTime);
+	} else { 
+		printf("M-transpose naive time\t %d", elapsedTime);
+	}
+
+	cudaMemcpy(h_A_out, d_A_out, mem_size_A, cudaMemcpyDeviceToHost);
+
+	cudaFree(d_A);
+	cudaFree(d_A_out);
 }
 
-void denseMatrixMatrixMul(float* A, float* B, float* C, int n, int m, int u) {
-	for(int i = 0; i < m; i++) {
-		for(int j = 0; j < n; j++) {
+void squareAccumulatorTest(bool optimized) {
+	const unsigned int block_size = 512;
+	const unsigned int N = 1000;
+	const unsigned int M = 64;
+	unsigned int mem_size = M*N * sizeof(float);	
+	float* h_A = (float*)malloc(mem_size);
+	float* h_B = (float*)malloc(mem_size);
+
+	for(int i = 0; i<M; i++) {
+		for(int j = 0; j<N; j++){
+			A[i*M + j] = rand() % 100;
+		}
+	}
+	
+	unsigned long int elapsed;
+	struct timeval t_start, t_end, t_diff;
+
+	float* d_A;
+	float* d_B;
+	cudaMalloc((void**)&d_A, mem_size);
+	cudaMalloc((void**)&d_B, mem_size);
+	// copy host memory to device
+	cudaMemcpy(d_A, h_A, mem_size, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_B, h_B, mem_size, cudaMemcpyHostToDevice);
+
+	unsigned long int elapsed;
+	struct timeval t_start,t_end,t_diff;
+	gettimeofday(&t_start, NULL);
+	
+	// run 
+	square_accumulator(N, d_A, d_B, optimized);
+	__syncThreads();
+	
+	gettimeofday(&t_end, NULL);
+	timeval_subtract(&t_diff, &t_end,&t_start);
+
+	if(optimized)
+		printf("Square Accumulator optimized time\t %d", elapsedTime);	
+	else
+		printf("Square Accumulator naive time\t %d", elapsedTime);	
+	
+	cudaMemcpy(h_B, d_B, mem_size, cudaMemcpyDeviceToHost);
+
+	cudaFree(d_A);
+	cudaFree(d_B);
+}
+
+void denseMatrixMatrixMul(float* A, float* B, float* C, int N, int M, int U) {
+	for(int i = 0; i < M; i++) {
+		for(int j = 0; j < N; j++) {
 			float tmp = 0.0f;
-			for(int k = 0; k < u; k++)
-				tmp += A[i,j]*B[i,j];
-			C[i,j] = tmp;
+			for(int k = 0; k < U; k++)
+				tmp += A[i*M + k] * B[k*U + j];
+			C[i*M + j] = tmp;
 		}
 	}
 }
 
+//  A, B and C have sizes MxU, UxN and MxN
+void matrixMatrixMulTest(bool optimized){
+	const unsigned int block_size = 512;
+	const unsigned int N = 1000;
+	const unsigned int M = 1000;
+	const unsigned int U = 1000;
+	unsigned int mem_size_A = M*U * sizeof(float);	
+	unsigned int mem_size_B = U*N * sizeof(float);	
+	unsigned int mem_size_C = M*N * sizeof(float);
+	float* h_A = (float*)malloc(mem_size_A);
+	float* h_B = (float*)malloc(mem_size_B);
+	float* h_C = (float*)malloc(mem_size_C);
+
+	for(int i = 0; i<M; i++) {
+		for(int j = 0; j<U; j++){
+			A[i*M + j] = rand() % 100;
+		}
+	}
+	for(int i = 0; i<U; i++) {
+		for(int j = 0; j<N; j++){
+			B[i*U + j] = rand() % 100;
+		}
+	}
+	for(int i = 0; i<M; i++) {
+		for(int j = 0; j<N; j++){
+			C[i*M + j] = rand() % 100;
+		}
+	}
+	
+	unsigned long int elapsed;
+	struct timeval t_start, t_end, t_diff;
+
+	float* d_A;
+	float* d_B;
+	float* d_C;
+	cudaMalloc((void**)&d_A, mem_size_A);
+	cudaMalloc((void**)&d_B, mem_size_B);
+	cudaMalloc((void**)&d_C, mem_size_C);
+	// copy host memory to device
+	cudaMemcpy(d_A, h_A, mem_size_A, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_B, h_B, mem_size_B, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_C, h_C, mem_size_C, cudaMemcpyHostToDevice);
+
+
+	unsigned long int elapsed;
+	struct timeval t_start,t_end,t_diff;
+	gettimeofday(&t_start, NULL);
+	
+	// run 
+	matrix_matrix_mul(d_A, d_B, d_C, M, N, U, optimized);
+	__syncThreads();
+	
+	gettimeofday(&t_end, NULL);
+	timeval_subtract(&t_diff, &t_end,&t_start);
+	elapsed=(t_diff.tv_sec*1e6 + t_diff.tv_usec);
+	double flops = 2.0 * M * N * U;
+	double gigaFlops=(flops*1.0e-3f) /elapsed;
+	if(optimized) {
+		printf("MMM optimized time\t %d", elapsedTime);		
+		printf("MMM gigaFlops optimized %d", gigaFlops);
+	} else { 
+		printf("MMM naive time\t %d", elapsedTime);				
+		printf("MMM gigaFlops naive %d", gigaFlops);
+	}
+
+	cudaMemcpy(h_C, d_C, mem_size_C, cudaMemcpyDeviceToHost);
+
+	cudaFree(d_A);
+	cudaFree(d_B);
+	cudaFree(d_C);
+}
+
+float gflops(){
+	unsigned long int elapsed;
+	struct timeval t_start,t_end,t_diff;
+	gettimeofday(&t_start, NULL);
+	
+	gettimeofday(&t_end, NULL);
+	timeval_subtract(&t_diff, &t_end,&t_start);
+	elapsed=(t_diff.tv_sec*1e6 + t_diff.tv_usec);
+	double flops = 2.0 * M * N * U;
+	double gigaFlops=(flops*1.0e-3f) /elapsed;
+}
 int main(int argc, char** argv) {
 	printf("\n");
 
@@ -159,3 +332,4 @@ int main(int argc, char** argv) {
 	printf("\n==========================\n");
 	spMatrixVctTest();
 }
+

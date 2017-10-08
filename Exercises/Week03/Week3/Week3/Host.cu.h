@@ -227,9 +227,9 @@ void sp_matrix_vector_multiply(const unsigned int  block_size,
 }
 
 void matrix_transpose(unsigned int blocksize
-    const unsigned long m,
-	const unsigned long n,
-	float*				d_matrix,
+    const unsigned long M,
+	const unsigned long N,
+	float*				d_A,
     float*				d_out,
     bool                optimized
 ) {
@@ -238,13 +238,13 @@ void matrix_transpose(unsigned int blocksize
     dim3 block(T,T,1), grid(dimx,dimy,1);
 
     if (optimized)
-        matrix_transpose<<<grid, block>>> (d_matrix, d_out, m, n);
+        matrix_transpose<<<grid, block>>> (d_A, d_out, M, N);
     else 
-        matrix_transpose_naive<<<grid, block>>>(d_matrix, d_out, m, n);
+        matrix_transpose_naive<<<grid, block>>>(d_A, d_out, M, N);
 }
 
 
-void list_sq_accumulator(unsigned int blocksize
+void square_accumulator(unsigned int blocksize
     const unsigned long N,
 	float*				d_in,
     float*				d_out, 
@@ -275,13 +275,18 @@ void matrix_matrix_mul(unsigned int blocksize
 	const unsigned long U,
 	float*				d_A,
 	float*				d_B,
-    float*				d_C
+    float*				d_C, 
+    bool optimized
 ) {
     int dimy = ceil( ((float)M) / T );
     int dimx = ceil( ((float)N) / T );
     dim3 block(T,T,1), grid(dimx,dimy,1);
 
-    matMatMul<T><<<grid, block>>>(d_A, d_B, d_C, M, N, U);
+    if(optimized)
+        matMatMul<T><<<grid, block>>>(d_A, d_B, d_C, M, N, U);
+    else
+        matMatMulNaive<T><<<grid, block>>>(d_A, d_B, d_C, M, N, U);
+    
 }
 #endif //SCAN_HOST
 
