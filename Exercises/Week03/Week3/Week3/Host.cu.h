@@ -226,7 +226,9 @@ void sp_matrix_vector_multiply(const unsigned int  block_size,
 	cudaFree(d_tmp_inds);
 }
 
-void matrix_transpose(unsigned int blocksize
+// Week 3: Task 1
+template<int T>
+void matrix_transpose(unsigned int blocksize,
     const unsigned long M,
 	const unsigned long N,
 	float*				d_A,
@@ -238,13 +240,15 @@ void matrix_transpose(unsigned int blocksize
     dim3 block(T,T,1), grid(dimx,dimy,1);
 
     if (optimized)
-        matrix_transpose<<<grid, block>>> (d_A, d_out, M, N);
+		matrixTranspose<T><<<grid, block>>> (d_A, d_out, M, N);
     else 
-        matrix_transpose_naive<<<grid, block>>>(d_A, d_out, M, N);
+		matrixTransposeNaive<T><<<grid, block>>>(d_A, d_out, M, N);
 }
 
 
-void square_accumulator(unsigned int blocksize
+// Week 3: Task 2
+template<int T>
+void square_accumulator(unsigned int block_size,
     const unsigned long N,
 	float*				d_in,
     float*				d_out, 
@@ -261,15 +265,17 @@ void square_accumulator(unsigned int blocksize
 	cudaMalloc((void**)&d_out_trans, size * sizeof(float));
 
     if(optimized) {
-        matrix_transpose(blocksize, n, 64, d_in, d_in_trans, true);
-        listSqrtAccumulatorTranspose<<<num_blocks, blocksize>>>(d_in_trans, d_out_trans, N);
-        matrix_transpose(blocksize, n, 64, d_out_trans, d_out, true);
+		matrix_transpose<T>(block_size, N, 64, d_in, d_in_trans, true);
+		squareAccumulatorTranspose<<<num_blocks, block_size>>>(d_in_trans, d_out_trans, N);
+        matrix_transpose<T>(block_size, N, 64, d_out_trans, d_out, true);
     } else {
-        listSqrtAccumulator<<<num_blocks, blocksize>>>(d_in, d_out, N);
+		squareAccumulator<<<num_blocks, block_size >>>(d_in, d_out, N);
     }
 }
 
-void matrix_matrix_mul(unsigned int blocksize
+// Week 3: Task 3
+template<int T>
+void matrix_matrix_mul(unsigned int blocksize,
     const unsigned long M,
 	const unsigned long N,
 	const unsigned long U,
