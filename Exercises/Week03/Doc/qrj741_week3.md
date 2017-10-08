@@ -6,6 +6,14 @@
 
 See cuda folder for implementation
 
+5000*5000 matrix
+
+Running time:
+    M-transpose naive time           55
+    M-transpose optimized time       59
+
+Which weirdly enough is very close to eachother. Some results also indicate a faster optimized version but in average they are very equal. This is probably due to some implementation error or the GPU01 nvidia driver.
+
 ## Task 2
 
 ### a)
@@ -36,7 +44,27 @@ If the sqrt is removed then the only operator left, the multiply is associative 
 ### c,d) 
 See cuda folder for implementation
 
+64*250000 matrix
+
+Running times:
+    Square Accumulator naive time            4848
+    Square Accumulator optimized time        19
+
+But it does not seem precise as the running time feels very similar.
+
 ## Task 3
 
 See CUDA folder for implementation.
+
+8000*8000 matrices.
+
+Running Times:
+    MMM naive time           11
+    MMM optimized time       12
+
+Gigaflops:
+    MMM gigaFlops naive      93090913.512490
+    MMM gigaFlops optimized  85333337.386449
+
+Again naive is faster than the optimized. Probably due to a fault in the implementation.
 
