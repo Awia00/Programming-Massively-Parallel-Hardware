@@ -316,6 +316,88 @@ write_lastSgmElem(float* tmp_scan, int* tmp_inds, int* flags_d, int tot_size, fl
     }
 }
 
+__global__ void matTransposeNaive(float* A, float* trA, int rowsA, int colsA ) {
+    int tidx = threadIdx.x;
+    int tidy = threadIdx.y;
+    int j = blockIdx.x*T + tidx;
+    int i = blockIdx.y*T + tidy;
+
+    if( j < colsA && i < rowsA )
+        trA[j*rowsA + i] = A[i*colsA+j];
+}
+
+template<int T>
+__global__ void matTranspose(float* A, float* trA, int rowsA, int colsA ) {
+    __shared__ float tile[T][T+1];
+    int tidx = threadIdx.x;
+    int tidy = threadIdx.y;
+    int j = blockIdx.x*T + tidx;
+    int i = blockIdx.y*T + tidy;
+
+    if( j < colsA && i < rowsA )
+        tile[tidy][tidx] = A[i*colsA+j];
+    
+    __syncthreads();
+    
+    i = blockIdx.y*T + threadIdx.x;
+    j = blockIdx.x*T + threadIdx.y;
+    if( j < colsA && i < rowsA )
+        trA[j*rowsA+i] = tile[tidx][tidy];
+}
+
+__global__ void listSqrtAccumulator(float* A, float* B, int N) {
+    const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
+    B[gid*N] = A[gid*N] * A[gid*N];
+    for(int j = 1; j < 64; j++) {
+        float tmpA = A[gid*N + j];
+        B[gid*N + j] = sqrt(B[gid*N + j-1]) + tmpA*tmpA;
+    }
+}
+
+__global__ void listSqrtAccumulatorTranspose(float* Atrans, float* B, int N) {
+    const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
+    B[gid*N] = Atrans[gid] * Atrans[gid];
+    for(int j = 1; j < 64; j++) {
+        float tmpA = Atrans[j*N + gid];
+        B[gid*N + j] = sqrt(B[gid*N + j-1]) + tmpA*tmpA;
+    }
+}
+
+__global__ void matMatMulNaive(float* A, float* B, float* C, int n, int m, int u) {
+    int tidx = threadIdx.x;
+    int tidy = threadIdx.y;
+    int j = blockIdx.x*T + tidx;
+    int i = blockIdx.y*T + tidy;
+
+    float tmp = 0.0f;
+    if( j < n && i < m ) {
+        for(int k = 0; k < u; k++){
+            tmp += A[i*m + k] * B[k*u + j]
+        }
+    }
+    C[j*m + i] = tmp;
+}
+
+template <int T> // KERNEL
+__global__ void matMatMul(float*A, float* B, float* C, int M, int N, int U ) {
+    __shared__ float Ash[T][T], Bsh[T][T];
+    int ii = blockIdx.y * T; //blockDim.x==T
+    int jj = blockIdx.x * T; //blockDim.y==T
+    int tidy = threadIdx.y, i = tidy+ii;
+    int tidx = threadIdx.x, j = tidx+jj;
+    float tmp = 0.0;
+    for(int kk=0; kk<U; kk+=T) {
+        Ash[tidy][tidx] = (i<M && kk+tidx<U) ? A[i*U + (kk+tidx)] : 0.0;
+        Bsh[tidy][tidx] = (j<N && kk_tidy<U) ? B[(kk+tidy)*N + j] : 0.0;
+        __syncthreads();
+        
+        for(int k=0; k<T; k++) {
+            tmp += Ash[tidy][k] * Bsh[k][tidx]
+        } __syncthreads();
+    } 
+    if (i<M && j<N) C[i*N + j] = tmp;
+}
+
 
 #endif //SCAN_KERS
 

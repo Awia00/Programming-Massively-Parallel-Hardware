@@ -225,6 +225,64 @@ void sp_matrix_vector_multiply(const unsigned int  block_size,
 	cudaFree(d_pairs);
 	cudaFree(d_tmp_inds);
 }
+
+void matrix_transpose(unsigned int blocksize
+    const unsigned long m,
+	const unsigned long n,
+	float*				d_matrix,
+    float*				d_out,
+    bool                optimized
+) {
+    int dimy = ceil( ((float)M) / T );
+    int dimx = ceil( ((float)N) / T );
+    dim3 block(T,T,1), grid(dimx,dimy,1);
+
+    if (optimized)
+        matrix_transpose<<<grid, block>>> (d_matrix, d_out, m, n);
+    else 
+        matrix_transpose_naive<<<grid, block>>>(d_matrix, d_out, m, n);
+}
+
+
+void list_sq_accumulator(unsigned int blocksize
+    const unsigned long N,
+	float*				d_in,
+    float*				d_out, 
+    bool                optimized
+) {
+    unsigned int num_blocks = ( (N % block_size) == 0) ?
+    N / block_size     :
+    N / block_size + 1 ;
+
+    int size = N*64;
+    float *d_in_trans;
+    float *d_out_trans;
+	cudaMalloc((void**)&d_in_trans, size * sizeof(float));
+	cudaMalloc((void**)&d_out_trans, size * sizeof(float));
+
+    if(optimized) {
+        matrix_transpose(blocksize, n, 64, d_in, d_in_trans, true);
+        listSqrtAccumulatorTranspose<<<num_blocks, blocksize>>>(d_in_trans, d_out_trans, N);
+        matrix_transpose(blocksize, n, 64, d_out_trans, d_out, true);
+    } else {
+        listSqrtAccumulator<<<num_blocks, blocksize>>>(d_in, d_out, N);
+    }
+}
+
+void matrix_matrix_mul(unsigned int blocksize
+    const unsigned long M,
+	const unsigned long N,
+	const unsigned long U,
+	float*				d_A,
+	float*				d_B,
+    float*				d_C
+) {
+    int dimy = ceil( ((float)M) / T );
+    int dimx = ceil( ((float)N) / T );
+    dim3 block(T,T,1), grid(dimx,dimy,1);
+
+    matMatMul<T><<<grid, block>>>(d_A, d_B, d_C, M, N, U);
+}
 #endif //SCAN_HOST
 
 
