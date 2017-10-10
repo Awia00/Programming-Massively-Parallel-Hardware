@@ -42,13 +42,11 @@ I take a look at the inner loop
                                 
                                 30 + 10 + 5 + 64 = 109
 
-                                // at some point a startup(store) for storing p
-
-    Now each of the 109 cycles must be done 16 times (for each iteration) and adding 30 for startup(store) totalling at: 1744+30 = 1774 cycles.
+    Now each of the 109 cycles must be done 16 times (for each iteration) totalling at: 1744 = 1744 cycles.
 
 ### c)
 Since the matrix matrix multiplication is just a dot product for each column and row, we can reuse the previous result.
 Foreach entry in the output matrix we have to calculate the dot product over some row and column. Since the output matrix also has 1024*1024 entries we get: 
     
-    1024 * 1024 * 1774 cycles = 1 860 173 824 cycles
+    1024 * 1024 * 1744 cycles = 1 828 716 544 cycles
     

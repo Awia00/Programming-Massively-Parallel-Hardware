@@ -107,7 +107,14 @@ Assuming a match the pipeline looks like this.
 | l5 | ADDI R3, R3, #4    |    |    |    |    |    |    |    |    |    |     | IF  | ID  | EX  | ME  | WB  |     |     |     |     |
 | l6 | BNE R4, R3, SEARCH |    |    |    |    |    |    |    |    |    |     |     | IF  | ID  | ID  | ID  | ID  | EX  | ME  | WB  |
 
-As can be seen in the table the program would finish in clock 19.
+To calculate the total number of clock cycles we count the stalls of each instruction.
+    l1:     0 stalls = 1 cycle
+    l2:     3 stalls = 4 cycles
+    l3:     3 stalls = 4 cycles
+    l4:     0 stalls = 1 cycle
+    l5:     0 stalls = 1 cycle
+    l6:     3 stalls = 4 cycles
+    Total:  15 clock cycles.
 
 #### Non match
 Assuming a non-match the pipeline looks like this
@@ -122,9 +129,15 @@ Assuming a non-match the pipeline looks like this
 | l6 | BNE R4, R3, SEARCH |    |    |    |    |    |    |    |    |    |     |     |     | IF  | ID  | ID  | ID  | ID  | EX  | ME  | WB  |
 
 At C12 the IF and ID stages are flushed since the branch is taken.
-Therefore the program would finish in clock 20
 
-
+To calculate the total number of clock cycles we count the stalls of each instruction.
+    l1:     0 stalls = 1 cycle
+    l2:     3 stalls = 4 cycles
+    l3:     3 stalls = 4 cycles
+    l4:     flushed  = 1 cycle 
+    l5:     1 stall  = 2 cycle
+    l6:     3 stalls = 4 cycles
+    Total:  16 clock cycles.
 
 ### c)
 With register forwarding.
@@ -141,7 +154,17 @@ Assuming a match the pipeline looks like this.
 | l5 | ADDI R3, R3, #4    |    |    |    |    |    |    |    |    | IF | ID  | EX  | ME  | WB  |     |     |     |
 | l6 | BNE R4, R3, SEARCH |    |    |    |    |    |    |    |    |    | IF  | ID  | ID  | ID  | EX  | ME  | WB  |
 
-As can be seen in the table the program would finish in clock 16 effectively decreasing the # of clocks by 3 which makes good sense since we saved 1 clock for each RAW hazard.
+To calculate the total number of clock cycles we count the stalls of each instruction.
+    l1:     0 stalls = 1 cycle
+    l2:     2 stalls = 3 cycles
+    l3:     2 stalls = 3 cycles
+    l4:     0 stalls = 1 cycle 
+    l5:     0 stall  = 1 cycle
+    l6:     2 stalls = 3 cycles
+    Total:  12 clock cycles.
+
+The clock cycles are effectively decreasing by 3 which makes good sense since we saved 1 clock for each RAW hazard.
+
 
 #### Non match
 Assuming a non-match the pipeline looks like this
@@ -153,9 +176,18 @@ Assuming a non-match the pipeline looks like this
 | l3 | BNEZ R6, NOMATCH   |    |    | IF | IF | IF | ID | ID | ID | EX | ME  | WB  |     |     |     |     |     |     |
 | l4 | ADDI R1, R1, #1    |    |    |    |    |    | IF | IF | IF | ID |     |     |     |     |     |     |     |     |
 | l5 | ADDI R3, R3, #4    |    |    |    |    |    |    |    |    | IF | IF  | ID  | EX  | ME  | WB  |     |     |     |
-| l6 | BNE R4, R3, SEARCH |    |    |    |    |    |    |    |    |    |     | IF  | STL | STL | ID  | EX  | ME  | WB  |
+| l6 | BNE R4, R3, SEARCH |    |    |    |    |    |    |    |    |    |     | IF  | ID  | ID  | ID  | EX  | ME  | WB  |
 
-Therefore the program would finish in clock 17, also decreasing the number of clocks with 3.
+To calculate the total number of clock cycles we count the stalls of each instruction.
+    l1:     0 stalls = 1 cycle
+    l2:     2 stalls = 3 cycles
+    l3:     2 stalls = 3 cycles
+    l4:     flushed  = 1 cycle 
+    l5:     1 stall  = 2 cycle
+    l6:     2 stalls = 3 cycles
+    Total:  13 clock cycles.
+
+Therefore the program would finish in 13 clock cycles, also decreasing the number of clocks with 3.
 
 ### d)
 With full forwarding
@@ -168,11 +200,20 @@ Assuming a match the pipeline looks like this.
 | l1 | LW R5, 0(R3)       | IF | ID | EX | ME | WB |    |    |    |    |     |     |     |     |
 | l2 | SUB R6, R5, R2     |    | IF | ID | ID | EX | ME | WB |    |    |     |     |     |     |
 | l3 | BNEZ R6, NOMATCH   |    |    | IF | IF | ID | ID | EX | ME | WB |     |     |     |     |
-| l4 | ADDI R1, R1, #1    |    |    |    |    | IF | IF | ID | EX | WB |     |     |     |     |
+| l4 | ADDI R1, R1, #1    |    |    |    |    | IF | IF | ID | EX | ME | WB  |     |     |     |
 | l5 | ADDI R3, R3, #4    |    |    |    |    |    |    | IF | ID | EX | ME  | WB  |     |     |
 | l6 | BNE R4, R3, SEARCH |    |    |    |    |    |    |    | IF | ID | ID  | EX  | ME  | WB  |
 
-As can be seen in the table the program would finish in clock 13 effectively decreasing the # of clocks by 3.
+To calculate the total number of clock cycles we count the stalls of each instruction.
+    l1:     0 stalls = 1 cycle
+    l2:     1 stall  = 2 cycles
+    l3:     1 stall  = 2 cycles
+    l4:     0 stalls = 1 cycle 
+    l5:     0 stalls = 1 cycle
+    l6:     1 stall  = 2 cycles
+    Total:  9 clock cycles.
+
+As can be seen in the table the program would finish in 9 clock cycles effectively decreasing the # of clocks cycles by 3.
 
 #### Non match
 Assuming a non-match the pipeline looks like this
@@ -186,8 +227,14 @@ Assuming a non-match the pipeline looks like this
 | l5 | ADDI R3, R3, #4    |    |    |    |    |    |    | IF | IF | ID | EX  | ME  | WB  |     |     |
 | l6 | BNE R4, R3, SEARCH |    |    |    |    |    |    |    |    | IF | ID  | ID  | EX  | ME  | WB  |
 
-Therefore the program would finish in clock 14, also decreasing the number of clocks with 3.
-
+To calculate the total number of clock cycles we count the stalls of each instruction.
+    l1:     0 stalls = 1 cycle
+    l2:     1 stall  = 2 cycles
+    l3:     1 stall  = 2 cycles
+    l4:     flushed  = 1 cycle 
+    l5:     1 stalls = 2 cycles
+    l6:     1 stall  = 2 cycles
+    Total:  10 clock cycles.
 
 ### e)
 I showcase a single unroll but it should generalize well to more than one unroll. 
@@ -314,13 +361,11 @@ I take a look at the inner loop
                                 
                                 30 + 10 + 5 + 64 = 109
 
-                                // at some point a startup(store) for storing p
-
-    Now each of the 109 cycles must be done 16 times (for each iteration) and adding 30 for startup(store) totalling at: 1744+30 = 1774 cycles.
+    Now each of the 109 cycles must be done 16 times (for each iteration) totalling at: 1744 = 1744 cycles.
 
 ### c)
 Since the matrix matrix multiplication is just a dot product for each column and row, we can reuse the previous result.
 Foreach entry in the output matrix we have to calculate the dot product over some row and column. Since the output matrix also has 1024*1024 entries we get: 
     
-    1024 * 1024 * 1774 cycles = 1 860 173 824 cycles
+    1024 * 1024 * 1744 cycles = 1 828 716 544 cycles
     

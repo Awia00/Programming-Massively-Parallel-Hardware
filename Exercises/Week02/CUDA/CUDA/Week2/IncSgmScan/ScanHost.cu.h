@@ -217,8 +217,9 @@ void mssp(const unsigned int  block_size,
 		d_size / block_size + 1;
 
 	msspTrivialMap<<<num_blocks, block_size>>>(d_in, d_mapped, d_size);
-
-	scanInc<MsspOp, MyInt4>(block_size, d_size, d_mapped, d_out);
+    cudaThreadSynchronize();
+    scanInc<MsspOp, MyInt4>(block_size, d_size, d_mapped, d_out);
+    cudaThreadSynchronize();    
 
 	
 	cudaFree(d_mapped);
@@ -247,11 +248,14 @@ void sp_matrix_multiply(const unsigned int  block_size,
 		d_tot_size / block_size + 1;
 
 	spMatVctMult_pairs<<<num_blocks, block_size>>> (d_mat_inds, d_mat_vals, d_vct, d_tot_size, d_pairs);
-
-	sgmScanInc<Add<float>, float>(block_size, d_tot_size, d_pairs, d_flags, d_tmp_scan);
-	scanInc<Add<int>,int>(block_size, d_tot_size, d_flags, d_tmp_inds);
+    cudaThreadSynchronize();    
+    sgmScanInc<Add<float>, float>(block_size, d_tot_size, d_pairs, d_flags, d_tmp_scan);
+    cudaThreadSynchronize();    
+    scanInc<Add<int>,int>(block_size, d_tot_size, d_flags, d_tmp_inds);
+    cudaThreadSynchronize();    
 	
-	write_lastSgmElem<<<num_blocks, block_size>>> (d_tmp_scan, d_tmp_inds, d_flags, d_tot_size, d_out);
+    write_lastSgmElem<<<num_blocks, block_size>>> (d_tmp_scan, d_tmp_inds, d_flags, d_tot_size, d_out);
+    cudaThreadSynchronize();    
 	
 	cudaFree(d_pairs);
 	cudaFree(d_tmp_inds);
