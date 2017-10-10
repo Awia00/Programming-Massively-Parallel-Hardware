@@ -45,7 +45,8 @@ int scanIncTest(bool is_segmented) {
 			sgmScanInc< Add<int>, int >(block_size, num_threads, d_in, flags_d, d_out);
 		else
 			scanInc< Add<int>, int >(block_size, num_threads, d_in, d_out);
-
+		
+		cudaThreadSynchronize();
 		// copy host memory to device
 		cudaMemcpy(h_out, d_out, mem_size, cudaMemcpyDeviceToHost);
 
@@ -139,6 +140,7 @@ int scanExcTest(bool is_segmented) {
 		else
 			scanExc< Add<int>, int >(block_size, num_threads, d_in, d_out);
 
+		cudaThreadSynchronize();
 		// copy host memory to device
 		cudaMemcpy(h_out, d_out, mem_size, cudaMemcpyDeviceToHost);
 
@@ -231,6 +233,7 @@ int msspTest() {
 
 		// execute kernel
 		mssp(block_size, num_threads, d_in, d_out);
+		cudaThreadSynchronize();
 
 		// copy host memory to device
 		cudaMemcpy(h_out, d_out, mem_size_int4, cudaMemcpyDeviceToHost);
@@ -333,6 +336,7 @@ void spMatrixVctTest() {
 
 		// execute kernel
 		sp_matrix_multiply(block_size, matrix_size, vector_size, d_mat_inds, d_mat_val, d_vct, d_flags, d_out);
+		cudaThreadSynchronize();
 
 		// copy host memory to device
 		cudaMemcpy(h_out, d_out, mem_size_vct, cudaMemcpyDeviceToHost);
