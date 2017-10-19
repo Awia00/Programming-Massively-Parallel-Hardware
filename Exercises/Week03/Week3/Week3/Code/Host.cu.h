@@ -245,7 +245,7 @@ void matrix_transpose(unsigned int block_size,
 		int dimy = ceil(((float)M) / block_size);
 		int dimx = ceil(((float)N) / block_size);
 		dim3 block(block_size, block_size, 1), grid(dimx, dimy, 1);
-		matrixTransposeNaive<T> << <grid, block >> >(d_A, d_out, M, N);
+		matrixTransposeNaive<< <grid, block >> >(d_A, d_out, M, N);
 	}
 }
 

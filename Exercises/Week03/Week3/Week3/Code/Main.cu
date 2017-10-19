@@ -145,8 +145,8 @@ void matrixMatrixMul(float* A, float* B, float* C, int N, int M, int U) {
 		for(int j = 0; j < N; j++) {
 			float tmp = 0.0f;
 			for(int k = 0; k < U; k++)
-				tmp += A[i*M + k] * B[k*U + j];
-			C[i*M + j] = tmp;
+				tmp += A[i*U + k] * B[k*N + j];
+			C[i*N + j] = tmp;
 		}
 	}
 }

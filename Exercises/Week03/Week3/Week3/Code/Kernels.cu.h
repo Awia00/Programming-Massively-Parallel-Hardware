@@ -316,12 +316,11 @@ write_lastSgmElem(float* tmp_scan, int* tmp_inds, int* flags_d, int tot_size, fl
     }
 }
 
-template<int T>
 __global__ void matrixTransposeNaive(float* A, float* trA, int M, int N ) {
     int tidx = threadIdx.x;
     int tidy = threadIdx.y;
-    int j = blockIdx.x*T + tidx;
-    int i = blockIdx.y*T + tidy;
+    int j = blockIdx.x*blockDim.x + tidx;
+    int i = blockIdx.y*blockDim.y + tidy;
 
     if( j < N && i < M )
         trA[j*M + i] = A[i*N+j];
@@ -348,20 +347,28 @@ __global__ void matrixTranspose(float* A, float* trA, int M, int N ) {
 
 __global__ void squareAccumulator(float* A, float* B, int N) {
     const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
-    B[gid*N] = A[gid*N] * A[gid*N];
-    for(int j = 1; j < 64; j++) {
-        float tmpA = A[gid*N + j];
-        B[gid*N + j] = sqrt(B[gid*N + j-1]) + tmpA*tmpA;
-    }
+	if (gid < N * 64) {
+		float accum = A[gid * 64] * A[gid * 64];
+		B[gid * 64] = accum;
+		for (int j = 1; j < 64; j++) {
+			float tmpA = A[gid * 64 + j];
+			accum = sqrt(B[gid * 64 + j - 1]) + tmpA*tmpA;
+			B[gid * 64 + j] = accum;
+		}
+	}
 }
 
 __global__ void squareAccumulatorTranspose(float* Atrans, float* B, int N) {
     const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
-    B[gid*N] = Atrans[gid] * Atrans[gid];
-    for(int j = 1; j < 64; j++) {
-        float tmpA = Atrans[j*N + gid];
-        B[gid*N + j] = sqrt(B[gid*N + j-1]) + tmpA*tmpA;
-    }
+	if (gid < N * 64) {
+		float accum = Atrans[gid] * Atrans[gid];
+		B[gid] = accum;
+		for (int j = 1; j < 64; j++) {
+			float tmpA = Atrans[j*64 + gid];
+			accum = sqrt(B[gid * 64 + j - 1]) + tmpA*tmpA;
+			B[gid * 64 + j] = accum;
+		}
+	}
 }
 
 __global__ void matMatMulNaive(float* A, float* B, float* C, int n, int m, int u, int T) {
@@ -373,10 +380,10 @@ __global__ void matMatMulNaive(float* A, float* B, float* C, int n, int m, int u
     float tmp = 0.0f;
     if( j < n && i < m ) {
         for(int k = 0; k < u; k++) {
-			tmp += A[i*m + k] * B[k*u + j];
+			tmp += A[i*u + k] * B[k*n + j];
         }
     }
-    C[j*m + i] = tmp;
+    C[i*n + j] = tmp;
 }
 
 template <int T> // KERNEL
