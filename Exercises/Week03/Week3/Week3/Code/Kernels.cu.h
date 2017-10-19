@@ -347,26 +347,28 @@ __global__ void matrixTranspose(float* A, float* trA, int M, int N ) {
 
 __global__ void squareAccumulator(float* A, float* B, int N) {
     const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
-	if (gid < N * 64) {
-		float accum = A[gid * 64] * A[gid * 64];
+	if (gid < N) {
+		int i = gid * 64;
+		float accum = A[i] * A[i];
 		B[gid * 64] = accum;
 		for (int j = 1; j < 64; j++) {
-			float tmpA = A[gid * 64 + j];
-			accum = sqrt(B[gid * 64 + j - 1]) + tmpA*tmpA;
-			B[gid * 64 + j] = accum;
+			float tmpA = A[i + j];
+			accum = sqrt(B[i + j - 1]) + tmpA*tmpA;
+			B[i + j] = accum;
 		}
 	}
 }
 
 __global__ void squareAccumulatorTranspose(float* Atrans, float* B, int N) {
     const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
-	if (gid < N * 64) {
+	if (gid < N) {
+		int i = gid * 64;
 		float accum = Atrans[gid] * Atrans[gid];
-		B[gid] = accum;
+		B[i] = accum;
 		for (int j = 1; j < 64; j++) {
-			float tmpA = Atrans[j*64 + gid];
-			accum = sqrt(B[gid * 64 + j - 1]) + tmpA*tmpA;
-			B[gid * 64 + j] = accum;
+			float tmpA = Atrans[j*N + gid];
+			accum = sqrt(B[i + j - 1]) + tmpA*tmpA;
+			B[i + j] = accum;
 		}
 	}
 }
