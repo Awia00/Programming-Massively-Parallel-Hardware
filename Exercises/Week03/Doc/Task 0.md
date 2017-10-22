@@ -1,4 +1,4 @@
-# Exercises Week 3
+# Exercises Week 3 - Resubmit
 *Anders Wind Steffensen* (qrj742@alumni.ku.dk)
-08-10-2017
+19-10-2017
 

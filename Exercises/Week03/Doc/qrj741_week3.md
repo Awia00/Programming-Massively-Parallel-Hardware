@@ -1,6 +1,6 @@
-# Exercises Week 3
+# Exercises Week 3 - Resubmit
 *Anders Wind Steffensen* (qrj742@alumni.ku.dk)
-08-10-2017
+19-10-2017
 
 ## Task 1
 
@@ -18,28 +18,27 @@ Which weirdly enough is very close to eachother. Some results also indicate a fa
 
 ### a)
 The loop is not parallel since it is dependend on *accum* which is changed in every iteration of the loop based on the value from the i-iteration before.
-To make the outloop parallel one could use the concept of privatization. That is either create accum inside the loop, make it an array and index into it with the loop variable. 
+To make the outloop parallel one could use the concept of privatization. That is either create accum inside the loop, make it an array and index into it with the loop variable.
+The same problem applies to tmpA which is also reused in every iteration.
 
 1. 	for i from 0 to N-1 // outer loop
 2. 		accum[i] = A[i,0] * A[i,0];
 3. 		B[i,0] = accum[i];
 4. 		for j from 1 to 63 // inner loop
-5. 			tmpA = A[i, j];
-6. 			accum[i] = sqrt(accum[i]) + tmpA*tmpA;
+5. 			tmpA[i] = A[i, j];
+6. 			accum[i] = sqrt(accum[i]) + tmpA[i]*tmpA[i];
 7. 			B[i,j] = accum[i];
 
-or accum can be removed all together like this
+or accum and tmpA can be removed all together like this
 
 1. 	for i from 0 to N-1 // outer loop
 3. 		B[i,0] = A[i,0] * A[i,0];
 4. 		for j from 1 to 63 // inner loop
-5. 			tmpA = A[i, j];
-7. 			B[i,j] = sqrt(B[i,j-1]) + tmpA*tmpA;
+7. 			B[i,j] = sqrt(B[i,j-1]) + A[i, j]*A[i, j];
 
 The inner loop is not map parallel since each iteration is dependend on the resulting *accum* from the j-iteration before.
 
-The innerloop cannot be written as a composition of parallel operators since *sqrt* is not associative and as such cannot be calculated in any order.
-If the sqrt is removed then the only operator left, the multiply is associative and the loop can be implemented as a scan.
+The innerloop cannot be written as a composition of parallel operators. The plus binary operator is associative, but when applying *sqrt* to elements which are accumulated over iterations then the result cannot be calculated out of order. For example: sqrt(sqrt(a) + b) + c is not the same as sqrt(sqrt(b) + a) + c, which represents an out of order execution.
 
 ### c,d) 
 See cuda folder for implementation
@@ -47,10 +46,10 @@ See cuda folder for implementation
 64*250000 matrix
 
 Running times:
-    Square Accumulator naive time            4848
-    Square Accumulator optimized time        19
+    Square Accumulator naive time            13015
+    Square Accumulator optimized time        7818
 
-But it does not seem precise as the running time feels very similar.
+We are now seeing a nice speedup of transposing matrix A and then transposing matrix B to get the wanted result.
 
 ## Task 3
 
