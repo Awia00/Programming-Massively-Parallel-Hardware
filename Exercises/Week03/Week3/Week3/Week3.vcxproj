@@ -25,7 +25,7 @@
     <ClInclude Include="Code\TimeOfDay.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Code\Main.cu" />
+    <CudaCompile Include="Code\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Code\Makefile" />

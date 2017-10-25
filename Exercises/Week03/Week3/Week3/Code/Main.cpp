@@ -2,7 +2,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+
+#if defined(_OPENMP)
+#include "omp.h"
+#else
 #include "Host.cu.h"
+#endif
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
 #include "TimeOfDay.h" // Only on windows
@@ -10,9 +15,7 @@
 #include <sys/time.h> // Only on linux
 #endif
 
-#if defined(_OPENMP)
-#include "omp.h"
-#endif
+
 
 
 int timeval_subtract(struct timeval *result, struct timeval *t2, struct timeval *t1)
@@ -25,6 +28,7 @@ int timeval_subtract(struct timeval *result, struct timeval *t2, struct timeval 
 }
 
 #pragma region MatrixTranspose  
+
 void matrixTransposeSequential(float* matrix, float* outMatrix, int M, int N) {
 	for(int i = 0; i < M; i++) {
 		for(int j = 0; j < N; j++){
@@ -32,6 +36,8 @@ void matrixTransposeSequential(float* matrix, float* outMatrix, int M, int N) {
 		}
 	}
 }
+
+#if defined(_OPENMP)
 
 void matrixTransposeOpenMP(float* matrix, float* outMatrix, int M, int N) {
 	#pragma omp parallel shared(matrix, outMatrix, M, N) default(none)
@@ -41,6 +47,9 @@ void matrixTransposeOpenMP(float* matrix, float* outMatrix, int M, int N) {
 		}
 	}
 }
+
+
+#else
 
 void matrixTransposeGPUTest(bool optimized) {
 	if(optimized)
@@ -99,6 +108,8 @@ void matrixTransposeGPUTest(bool optimized) {
 	free(h_A_out);
 }
 
+#endif
+
 #pragma endregion MatrixTranspose
 
 #pragma region squareAccumulator
@@ -116,9 +127,11 @@ void squareAccumulatorSequential(float* A, float* B, int N) {
 	}
 }
 
+#if defined(_OPENMP)
+
 void squareAccumulatorOpenMP(float* A, float* B, int N) {
 	const int M = 64;
-	#pragma omp parallel shared(A,B,N,M) default(none)
+	#pragma omp parallel shared(A,B,N) default(none)
 	for (int i = 0; i < N; i++) {
 		float accum = A[i*M];
 		B[i*M] = accum;
@@ -129,6 +142,8 @@ void squareAccumulatorOpenMP(float* A, float* B, int N) {
 		}
 	}
 }
+
+#else
 
 void squareAccumulatorGPUTest(bool optimized) {
 	if (optimized)
@@ -184,6 +199,8 @@ void squareAccumulatorGPUTest(bool optimized) {
 	free(h_B);
 }
 
+#endif
+
 #pragma endregion SquareAccumulator
 
 #pragma region MatrixMatrixMul
@@ -199,6 +216,8 @@ void matrixMatrixMulSequential(float* A, float* B, float* C, int N, int M, int U
 	}
 }
 
+#if defined(_OPENMP)
+
 void matrixMatrixMulOpenMp(float* A, float* B, float* C, int N, int M, int U) {
 #pragma omp parallel shared(A,B,C,N,M,U) default(none)
 	for (int i = 0; i < M; i++) {
@@ -210,6 +229,8 @@ void matrixMatrixMulOpenMp(float* A, float* B, float* C, int N, int M, int U) {
 		}
 	}
 }
+
+#else
 
 //  A, B and C have sizes MxU, UxN and MxN
 void matrixMatrixMulGPUTest(bool optimized){
@@ -293,26 +314,46 @@ void matrixMatrixMulGPUTest(bool optimized){
 	free(h_C);
 }
 
+#endif
+
 #pragma endregion MatrixMatrixMul
 
-int main(int argc, char** argv) {
-	printf("\n");
+#if defined(_OPENMP)
 
+void runOpenMPProgram() {
+
+}
+
+#else 
+
+void runGPUProgram() {
 	matrixTransposeGPUTest(false);
 	printf("\n==========================\n");
 	matrixTransposeGPUTest(true);
 
-	printf("\n=========================="); 
+	printf("\n==========================");
 	printf("\n==========================\n");
 
 	squareAccumulatorGPUTest(false);
 	printf("\n==========================\n");
 	squareAccumulatorGPUTest(true);
 
-	printf("\n=========================="); 
+	printf("\n==========================");
 	printf("\n==========================\n");
 
 	matrixMatrixMulGPUTest(false);
 	printf("\n==========================\n");
 	matrixMatrixMulGPUTest(true);
+}
+
+#endif
+
+
+
+int main(int argc, char** argv) {
+#if defined(_OPENMP)
+	runOpenMPProgram();
+#else
+	runGPUProgram();
+#endif
 }

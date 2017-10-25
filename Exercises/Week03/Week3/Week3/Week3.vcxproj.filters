@@ -6,27 +6,27 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Code\Host.cu.h">
-      <Filter>Code</Filter>
-    </ClInclude>
-    <ClInclude Include="Code\Kernels.cu.h">
-      <Filter>Code</Filter>
-    </ClInclude>
     <ClInclude Include="Code\Main.h">
       <Filter>Code</Filter>
     </ClInclude>
     <ClInclude Include="Code\TimeOfDay.h">
       <Filter>Code</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="Code\Main.cu">
+    <ClInclude Include="Code\Kernels.cu.h">
       <Filter>Code</Filter>
-    </CudaCompile>
+    </ClInclude>
+    <ClInclude Include="Code\Host.cu.h">
+      <Filter>Code</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Code\Makefile">
       <Filter>Code</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="Code\Main.cpp">
+      <Filter>Code</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>
