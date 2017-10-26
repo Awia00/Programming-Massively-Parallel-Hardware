@@ -24,7 +24,7 @@ The inner loop is not map parallel since each iteration is dependend on the resu
 
 The innerloop cannot be written as a composition of parallel operators. The plus binary operator is associative, but when applying *sqrt* to elements which are accumulated over iterations then the result cannot be calculated out of order. For example: sqrt(sqrt(a) + b) + c is not the same as sqrt(sqrt(b) + a) + c, which represents an out of order execution. 
 
-When sqrt is removed from the expression, all the operators(both + and *) are associative and therefore it can be written as a composition of parallel operators. 
+When sqrt is removed from the expression, all the operators(both + and *) are associative and therefore it can be written as a composition of parallel operators, namely a map squaring the A[i,j] and then a scan sum.
 
 ### c,d) 
 See cuda folder for implementation
