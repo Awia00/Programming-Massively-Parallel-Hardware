@@ -26,14 +26,28 @@ The innerloop cannot be written as a composition of parallel operators. The plus
 
 When sqrt is removed from the expression, all the operators(both + and *) are associative and therefore it can be written as a composition of parallel operators, namely a map squaring the A[i,j] and then a scan sum.
 
+### b) 
+See the cuda folder for implementation (main.cu)
+Compile with 'make omp'
+Run with 'make runOMP'
+
+64*200000 matrix
+
+Running time :
+    Square Accumulator OMP time              7419
+    Square Accumulator sequential time       141303
+
+So a nice factor ~20 speedup. Which given that the server has 32 cores is quite nice and realistic. Also note that the dimension which was parallelized was much larger than the inner loop (compared to the 7~ speedup of matrix transpose OMP where both dimensions had almost equal values)
+
 ### c,d) 
 See cuda folder for implementation
 
-64*250000 matrix
+64*400000 matrix
 
-Running times:
-    Square Accumulator naive time            13015
-    Square Accumulator optimized time        7818
+Running time:
+    Square Accumulator naive time            17119
+    Square Accumulator optimized time        3767
+    Square Accumulator sequential time       360228
 
-We are now seeing a nice speedup of transposing matrix A and then transposing matrix B to get the wanted result.
+Here we are seeing some wery nice results showing how much parallelism we get. the optimized version is close to ~100 times faster than the CPU version and ~5 speedup from the unoptimized non-transposed version, even with the added extra computation of 2x transpose.
 

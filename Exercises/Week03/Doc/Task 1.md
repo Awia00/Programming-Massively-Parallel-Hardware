@@ -1,12 +1,27 @@
 ## Task 1
 
+### a,c,d)
 See cuda folder for implementation
 
-5000*5000 matrix
+8000*7000 matrix
 
 Running time:
-    M-transpose naive time           55
-    M-transpose optimized time       59
+    M-transpose naive time                   87316
+    M-transpose optimized time               90968
+    Matrix Transpose sequential time         1015279
 
-Which weirdly enough is very close to eachother. Some results also indicate a faster optimized version but in average they are very equal. This is probably due to some implementation error or the GPU01 nvidia driver.
+The optimized did not do better than the unoptimized. This might have improved if the dimensions were higher. 
+We do see a ~10-11 speed up from CPU to GPU version though.
 
+### b)
+See cuda folder for implementation (main.cu)
+Compile with 'make omp'
+Run with 'make runOMP'
+
+6000*5000 matrix:
+
+Running time:
+    Matrix Transpose OMP time                74615
+    Matrix Transpose sequential time         559462
+
+Close to a factor ~7 speedup. Given that the server has 32 cores but only one of the loops was parallelized this is a nice speedup.

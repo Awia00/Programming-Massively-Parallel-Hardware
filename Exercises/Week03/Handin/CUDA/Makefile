@@ -1,8 +1,10 @@
 CXX        = nvcc
+CCC        = gcc -fopenmp -lm
 
 SOURCES_CPP =Main.cu
 HELPERS     =Host.cu.h Kernels.cu.h
-EXECUTABLE  =week3
+EXECUTABLEGPU  =week3GPU
+EXECUTABLEOMP  =week3OMP
 
 
 default: compile
@@ -11,14 +13,22 @@ default: compile
 	$(CXX) -c $@ $<
 
 
-compile: $(EXECUTABLE)
-$(EXECUTABLE): 
-	$(CXX) -o $(EXECUTABLE) $(SOURCES_CPP)
+compile: $(EXECUTABLEGPU)
+$(EXECUTABLEGPU): 
+	$(CXX) -o $(EXECUTABLEGPU) $(SOURCES_CPP)
 
+omp: $(EXECUTABLEOMP)
+$(EXECUTABLEOMP): 
+	cp $(SOURCES_CPP) $(SOURCES_CPP).cpp
+	$(CCC) -o $(EXECUTABLEOMP) $(SOURCES_CPP).cpp
 
-run: $(EXECUTABLE)
-	./$(EXECUTABLE)
+run: $(EXECUTABLEGPU)
+	./$(EXECUTABLEGPU)
+
+runOMP: $(EXECUTABLEOMP)
+	./$(EXECUTABLEOMP)
 
 clean:
-	rm -f $(EXECUTABLE)
+	rm -f $(EXECUTABLEGPU)
+	rm -f $(EXECUTABLEOMP)
 

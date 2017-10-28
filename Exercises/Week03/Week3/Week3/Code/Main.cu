@@ -90,7 +90,7 @@ void matrixTransposeOMPTest() {
 	printf("\nRunning Matrix Transpose OMP\n");
 
 	const unsigned int N = 6000;
-	const unsigned int M = 6000;
+	const unsigned int M = 5000;
 	unsigned int mem_size_A = M*N * sizeof(float);
 	float* h_A = (float*)malloc(mem_size_A);
 	float* h_A_out = (float*)malloc(mem_size_A);
@@ -398,8 +398,8 @@ void matrixMatrixMulOMPTest() {
 	printf("\nRunning Matrix Matrix Mul OMP\n");
 
 	const unsigned int N = 2000;
-	const unsigned int M = 2000;
-	const unsigned int U = 2000;
+	const unsigned int M = 2200;
+	const unsigned int U = 1800;
 	unsigned int mem_size_A = M*U * sizeof(float);
 	unsigned int mem_size_B = U*N * sizeof(float);
 	unsigned int mem_size_C = M*N * sizeof(float);
@@ -419,7 +419,7 @@ void matrixMatrixMulOMPTest() {
 		}
 	}
 
-	matrixMatrixMulOMP(h_A, h_B, h_C, M, N, U);
+	matrixMatrixMulOMP(h_A, h_B, h_C, N, M, U);
 	matrixMatrixMulSequential(h_A, h_B, h_C_expected, N, M, U);
 
 	CheckMatrixWithExpected(M, N, h_C, h_C_expected);
