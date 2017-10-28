@@ -5,63 +5,57 @@
 #include "device_launch_parameters.h"
 
 // Week 3 task 1
-template <class T>
-__global__ void matrixTransposeNaive(float* A, float* transposedA, int M, int N ) {
+__global__ void matrixTransposeNaive(float* A, float* transposedA, const unsigned int M, const unsigned int N ) {
     int tidx = threadIdx.x;
     int tidy = threadIdx.y;
     int j = blockIdx.x*blockDim.x + tidx;
     int i = blockIdx.y*blockDim.y + tidy;
 
-    if( j < N && i < M )
-        transposedA[j*M + i] = A[i*N+j];
+	if (j < N && i < M) 
+		transposedA[j*M + i] = A[i*N + j];
 }
 
 // Week 3 task 1
-template <class T, int TILE>
+template <int TILE>
 __global__ void matrixTranspose(float* A, float* trA, int M, int N ) {
-    __shared__ float tile[TILE][TILE +1];
-    int tidx = threadIdx.x;
-    int tidy = threadIdx.y;
-    int j = blockIdx.x*TILE + tidx;
-    int i = blockIdx.y*TILE + tidy;
-
+	__shared__ float tile[TILE][TILE + 1];
+	int tidx = threadIdx.x;
+	int tidy = threadIdx.y;
+	int j = blockIdx.x*TILE + tidx;
+	int i = blockIdx.y*TILE + tidy;
 	if (j < N && i < M)
-        tile[tidy][tidx] = A[i*N+j];
-    
-    __syncthreads();
-    
-    i = blockIdx.y*TILE + tidy;
-    j = blockIdx.x*TILE + tidx;
-    if( j < N && i < M )
-        trA[j*M+i] = tile[tidx][tidy];
+		tile[tidy][tidx] = A[i*N + j];
+	__syncthreads();
+	i = blockIdx.y*TILE + threadIdx.x;
+	j = blockIdx.x*TILE + threadIdx.y;
+	if (j < N && i < M)
+		trA[j*M + i] = tile[tidx][tidy];
 }
 
 // Week 3 task 2
-__global__ void squareAccumulator(float* A, float* B, int N) {
-    const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
-	if (gid < N) {
-		int i = gid * 64;
-		float accum = A[i] * A[i];
-		B[gid * 64] = accum;
-		for (int j = 1; j < 64; j++) {
-			float tmpA = A[i + j];
-			accum = sqrt(B[i + j - 1]) + tmpA*tmpA;
-			B[i + j] = accum;
+__global__ void squareAccumulator(float* A, float* B, int N, int M) {
+    const unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
+	if (i < N) {
+		float accum = A[i*M];
+		B[i*M] = accum;
+		for (int j = 1; j < M; j++) {
+			float tmpA = A[i*M + j];
+			accum = sqrt(accum) + tmpA*tmpA;
+			B[i*M + j] = accum;
 		}
 	}
 }
 
 // Week 3 task 2
-__global__ void squareAccumulatorTranspose(float* Atrans, float* B, int N) {
-    const unsigned int gid = blockIdx.x*blockDim.x + threadIdx.x;
-	if (gid < N) {
-		int i = gid * 64;
-		float accum = Atrans[gid] * Atrans[gid];
+__global__ void squareAccumulatorTranspose(float* Atrans, float* B, int N, int M) {
+    const unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
+	if (i < N) {
+		float accum = Atrans[i];
 		B[i] = accum;
-		for (int j = 1; j < 64; j++) {
-			float tmpA = Atrans[j*N + gid];
-			accum = sqrt(B[i + j - 1]) + tmpA*tmpA;
-			B[i + j] = accum;
+		for (int j = 1; j < M; j++) {
+			float tmpA = Atrans[j*N + i];
+			accum = sqrt(accum) + tmpA*tmpA;
+			B[j*N + i] = accum;
 		}
 	}
 }
@@ -79,6 +73,7 @@ __global__ void matrixMatrixMulNaive(float* A, float* B, float* C, int N, int M,
 			tmp += A[i*U + k] * B[k*N + j];
         }
     }
+	__syncthreads();
     C[i*N + j] = tmp;
 }
 
